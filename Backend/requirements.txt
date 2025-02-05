@@ -3,3 +3,4 @@ requests==2.32.3
 pydantic
 fastapi
 uvicorn
+beautifulsoup4
