@@ -1,5 +1,10 @@
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../font/Montserrat.woff2') format('woff');
+}
+
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Montserrat';
     background-color: #1e1e1e;
     color: #ffffff;
     display: flex;
@@ -13,13 +18,13 @@ body {
     padding: 20px;
     border-radius: 8px;
     width: 400px;
-    margin-top: 400px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
   label {
     display: flex;
+    font-family: 'Montserrat';
     margin-top: 10px;
-    font-weight: bold;
+    margin-right: 10px;
   }
   input, select, textarea {
     width: 100%;
@@ -35,7 +40,7 @@ body {
   button {
     width: 100%;
     padding: 10px;
-    background-color: #007bff;
+    background-color: #00649d;
     color: white;
     font-size: 16px;
     border: none;
@@ -48,4 +53,34 @@ body {
 
   .checkbox_tags{
     display:flex;
+    flex-wrap: wrap;
+  }
+
+  .screen{
+    border:10px solid grey;
+    /* border-radius: 10%; */
+    width:400px;
+  }
+
+  .screen__text{
+    padding: 10px;
+    list-style-type:none
+  }
+
+  .panel {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 400px;
+  }
+
+  li {
+    margin-top: 10px;
+  }
+
+
+  @media (max-width: 768px) {
+    .panel {
+      flex-direction: column; 
+      height: fit-content;
+    }
   }

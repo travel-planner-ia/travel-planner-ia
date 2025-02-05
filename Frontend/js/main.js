@@ -1,3 +1,6 @@
+
+
+//Envio al back
 async function submitForm() {
     const form = document.getElementById('travelForm');
     const formData = new FormData(form);
@@ -27,6 +30,17 @@ async function submitForm() {
         });
         if (response.ok) {
           alert('Datos enviados con éxito');
+
+          //Añadir respuesta al front
+          const ANSWER = await response.json();
+          console.log(ANSWER)
+        //   const B = JSON.stringify(ANSWER)
+        //   console.log(B)
+        const TEXT = document.getElementById("screen_text");
+        console.log(TEXT)
+        let li = document.createElement("li");
+        li.appendChild(document.createTextNode(ANSWER.mensaje))
+        TEXT.appendChild(li)
         } else {
           alert('Error al enviar los datos');
         }
@@ -35,42 +49,43 @@ async function submitForm() {
         alert('No se pudo conectar con el servidor');
       }
     }
-  }
+}
+
+//Validar fechas
+function validateDates(departureDate, returnDate) {
+// Verificar si ambas fechas son válidas
+if (!isValidDate(departureDate) || !isValidDate(returnDate)) {
+    return false;
+}
+// Convertir las fechas a objetos Date
+const departureDateObj = new Date(departureDate);
+const returnDateObj = new Date(returnDate);
+const today = new Date();
+today.setHours(0, 0, 0, 0); // Establecer la hora a medianoche para comparar solo la fecha
+// Verificar si la fecha de salida es hoy o posterior
+if (departureDateObj < today) {
+    alert('La fecha de salida debe ser hoy o posterior.');
+    return false;
+}
+// Verificar si la fecha de regreso es mayor o igual que la fecha de partida
+if (returnDateObj < departureDateObj) {
+    alert('La fecha de regreso debe ser mayor o igual que la fecha de partida.');
+    return false;
+}
+return true;
+}
   
-  function validateDates(departureDate, returnDate) {
-    // Verificar si ambas fechas son válidas
-    if (!isValidDate(departureDate) || !isValidDate(returnDate)) {
-      return false;
-    }
-    // Convertir las fechas a objetos Date
-    const departureDateObj = new Date(departureDate);
-    const returnDateObj = new Date(returnDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Establecer la hora a medianoche para comparar solo la fecha
-    // Verificar si la fecha de salida es hoy o posterior
-    if (departureDateObj < today) {
-      alert('La fecha de salida debe ser hoy o posterior.');
-      return false;
-    }
-    // Verificar si la fecha de regreso es mayor o igual que la fecha de partida
-    if (returnDateObj < departureDateObj) {
-      alert('La fecha de regreso debe ser mayor o igual que la fecha de partida.');
-      return false;
-    }
-    return true;
-  }
-  
-  // Función auxiliar para verificar si una fecha es válida
-  function isValidDate(dateString) {
-    const regex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!regex.test(dateString)) {
-      return false;
-    }
-    const dateParts = dateString.split('-');
-    const year = parseInt(dateParts[0], 10);
-    const month = parseInt(dateParts[1], 10);
-    const day = parseInt(dateParts[2], 10);
-    const date = new Date(year, month - 1, day);
-    return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
-  }
+// Función auxiliar para verificar si una fecha es válida
+function isValidDate(dateString) {
+const regex = /^\d{4}-\d{2}-\d{2}$/;
+if (!regex.test(dateString)) {
+    return false;
+}
+const dateParts = dateString.split('-');
+const year = parseInt(dateParts[0], 10);
+const month = parseInt(dateParts[1], 10);
+const day = parseInt(dateParts[2], 10);
+const date = new Date(year, month - 1, day);
+return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
   

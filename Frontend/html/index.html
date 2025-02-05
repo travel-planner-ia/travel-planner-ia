@@ -7,42 +7,41 @@
   <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body>
-  <form id="travelForm">
-    <label for="destination">Destino:</label>
-    <input type="text" id="destination" name="destination" value="Alemania" required>
+  <div class="panel">
+      <form id="travelForm">
+        <label for="destination">Destino:</label>
+        <input type="text" id="destination" name="destination" value="Alemania" required>
+        <label for="adults">Nº de adultos:</label>
+        <input type="number" id="adults" name="adults" value="2" min="1" required>
+        <label for="children">Nº de menores:</label>
+        <input type="number" id="children" name="children" value="0" min="0" required>
+        <label for="departureDate">Fecha de salida:</label>
+        <input type="date" id="departureDate" name="departureDate"  required>
+        <label for="returnDate">Fecha de vuelta:</label>
+        <input type="date" id="returnDate" name="returnDate"  required>
+        <label for="budget">Presupuesto:</label>
+        <input type="number" id="budget" name="budget" value="0" required>
+        <label for="medicalCondition">Condición médica excepcional:</label>
+        <input type="text" id="medicalCondition" name="medicalCondition">
+        <label for="additionalInfo">Información adicional:</label>
+        <textarea id="additionalInfo" name="additionalInfo"></textarea>
+        <label>Tags:</label>
+        <div class="checkbox_tags">
+            <label><input type="checkbox" name="tags" value="Montaña"> Montaña</label>
+            <label><input type="checkbox" name="tags" value="Playa" checked> Playa</label>
+            <label><input type="checkbox" name="tags" value="Tranquilidad"> Tranquilidad</label>
+            <label><input type="checkbox" name="tags" value="Deporte"> Deporte</label>
+            <label><input type="checkbox" name="tags" value="Cultura" checked> Cultura</label>
+        </div>
+        <button type="button" onclick="submitForm()">Consultar</button>
+      </form>
 
-    <label for="adults">Nº de adultos:</label>
-    <input type="number" id="adults" name="adults" value="2" min="1" required>
-
-    <label for="children">Nº de menores:</label>
-    <input type="number" id="children" name="children" value="0" min="0" required>
-
-    <label for="departureDate">Fecha de salida:</label>
-    <input type="date" id="departureDate" name="departureDate"  required>
-
-    <label for="returnDate">Fecha de vuelta:</label>
-    <input type="date" id="returnDate" name="returnDate"  required>
-
-    <label for="budget">Presupuesto:</label>
-    <input type="number" id="budget" name="budget" value="0" required>
-
-    <label for="medicalCondition">Condición médica excepcional:</label>
-    <input type="text" id="medicalCondition" name="medicalCondition">
-
-    <label for="additionalInfo">Información adicional:</label>
-    <textarea id="additionalInfo" name="additionalInfo"></textarea>
-
-    <label>Tags:</label>
-    <div class="checkbox_tags">
-        <label><input type="checkbox" name="tags" value="Montaña"> Montaña</label>
-        <label><input type="checkbox" name="tags" value="Playa" checked> Playa</label>
-        <label><input type="checkbox" name="tags" value="Tranquilidad"> Tranquilidad</label>
-        <label><input type="checkbox" name="tags" value="Deporte"> Deporte</label>
-        <label><input type="checkbox" name="tags" value="Cultura" checked> Cultura</label>
-    </div>
-
-    <button type="button" onclick="submitForm()">Consultar</button>
-  </form>
+      <div id="screen" class="screen">
+        <ul id="screen_text" class="screen__text">
+            <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</ul>
+            </li>
+        </div>
+  </div>
 
   <script src="../js/main.js"></script>
 </body>
