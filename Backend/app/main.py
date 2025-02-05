@@ -27,5 +27,7 @@ async def get_home():
 # Ruta para enviar consultas al servidor
 @app.post("/servidor")
 async def post_to_servidor(datos: Datos):
+    #"datos" es lo que nos llega desde el formulario de front
     print("datos =", datos)
+    #Esto es lo que retornaremos al front
     return {"mensaje": "Bienvenido al servidor", "datos":datos}
