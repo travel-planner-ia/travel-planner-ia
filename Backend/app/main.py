@@ -28,7 +28,7 @@ app.add_middleware(
 # Ruta inicial
 @app.get("/")
 async def get_home():
-    countries = return_countries()
+    countries = list_of_countries
     return {"mensaje": "Bienvenido a la aplicacion", "datos": countries}
 
 # Ruta para enviar consultas al servidor
@@ -36,7 +36,10 @@ async def get_home():
 async def post_to_servidor(datos: Datos):
     #"datos" es lo que nos llega desde el formulario de front
     print("datos =", datos)
+    #Aquí haremos la llamada
+
+    #Respuesta de la llamada
+
     #Esto es lo que retornaremos al front
-    #stream_answer(datos)
     procesar_respuesta()
     return {"mensaje": "Bienvenido al servidor", "datos":datos}

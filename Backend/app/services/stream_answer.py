@@ -34,26 +34,27 @@ headers = {
 }
 
 def procesar_respuesta():
-    try:
-        response = requests.post(url, json=data, headers=headers)
-        response.raise_for_status()
-        try:
-            json_response = response.json()
-            print("json_response =",json_response)
-            texto_respuesta = json_response.get("texto")  # Ajusta el nombre de la clave según la estructura del JSON
-            print("texto_respuesta =",texto_respuesta)
+    return "Holi"
+    # try:
+    #     response = requests.post(url, json=data, headers=headers)
+    #     response.raise_for_status()
+    #     try:
+    #         json_response = response.json()
+    #         print("json_response =",json_response)
+    #         texto_respuesta = json_response.get("texto")  # Ajusta el nombre de la clave según la estructura del JSON
+    #         print("texto_respuesta =",texto_respuesta)
             
-            array_respuesta = texto_respuesta.split("\n")
-            json_salida = {"respuesta": array_respuesta}
-            print(json_salida)
-            return json.dumps(json_salida, indent=4)
-        except json.JSONDecodeError as e:
-            print("Error al parsear la respuesta como JSON:", e)
-            print("Respuesta del servidor:", response.text)
-            return None
-    except requests.exceptions.RequestException as e:
-        print("Error al realizar la solicitud:", e)
-        return None
+    #         array_respuesta = texto_respuesta.split("\n")
+    #         json_salida = {"respuesta": array_respuesta}
+    #         print(json_salida)
+    #         return json.dumps(json_salida, indent=4)
+    #     except json.JSONDecodeError as e:
+    #         print("Error al parsear la respuesta como JSON:", e)
+    #         print("Respuesta del servidor:", response.text)
+    #         return None
+    # except requests.exceptions.RequestException as e:
+    #     print("Error al realizar la solicitud:", e)
+    #     return None
 
 
 def stream_answer(input):
