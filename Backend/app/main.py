@@ -40,7 +40,7 @@ async def procesar_respuestas(front_request):
     # Llamadas a procesos pesados (RAG y Amadeus) en paralelo
     async def obtener_rag():
         try:
-            embedder = Embedder("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")
+            embedder = Embedder("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")
             return await embedder.rag_pais(front_request.destination)
         except Exception as e:
             print("Error en la llamada a RAG:", e)
@@ -81,7 +81,7 @@ async def post_to_servidor(frontRequest: Datos):
 
         try:
             if respuestas_rag and respuestas_amaedeus:
-                llm = LLM('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')
+                llm = LLM('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')
                 prompt = llm._prompting(respuestas_rag, respuestas_amaedeus, frontRequest)
                 respuesta_final = llm._llamada_llm(prompt)
                 return {"mensaje": "Respuesta procesada", "datos": procesar_respuesta(respuesta_final)}
@@ -90,9 +90,6 @@ async def post_to_servidor(frontRequest: Datos):
         except Exception as e:
             print("Error en la llamada final al LLM:", e)
             return {"error": "Error procesando la respuesta final"}
-
-
-
 
 
 '''
