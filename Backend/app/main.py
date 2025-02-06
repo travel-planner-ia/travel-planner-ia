@@ -12,7 +12,7 @@ import asyncio
 # from services.get_countries import return_countries;
 # import bs4
 #print(bs4.__version__)
-
+from models.final_agent_amadeus import GeneralAgent
 
 app = FastAPI()
 semaforo = asyncio.Semaphore(1)
@@ -153,6 +153,9 @@ async def post_to_servidor(frontRequest: Datos):
     #Respuesta de la llamada
 
     #Esto es lo que retornaremos al front
+<<<<<<< HEAD
     #procesar_respuesta()
     return {"mensaje": "Bienvenido al servidor", "datos": procesar_respuesta(respuesta_final)}
 '''
+
+

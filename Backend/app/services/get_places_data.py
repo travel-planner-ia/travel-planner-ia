@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from models.amadeus_class import AmadeusAPI
+import asyncio
 
 load_dotenv()
 
