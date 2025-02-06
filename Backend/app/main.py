@@ -40,12 +40,13 @@ async def post_to_servidor(datos: Datos):
     #Aquí haremos la llamada
     try:
         embedder = Embedder("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")
+        respuestas = await embedder.rag_pais(datos.pais)
 
     except Exception as e:
-        print("Error en la llamada a la API")
+        print("Error en la llamada al RAG")
         print(e)
     #Respuesta de la llamada
 
     #Esto es lo que retornaremos al front
     procesar_respuesta()
-    return {"mensaje": "Bienvenido al servidor", "datos":datos}
+    return {"mensaje": "Bienvenido al servidor", "respuesta":procesar_respuesta()}
