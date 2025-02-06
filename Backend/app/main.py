@@ -35,11 +35,11 @@ async def get_home():
 @app.post("/servidor")
 async def post_to_servidor(datos: Datos):
     #"datos" es lo que nos llega desde el formulario de front
-    print("datos =", datos)
+    #print("datos =", datos)
     #Aquí haremos la llamada
 
     #Respuesta de la llamada
 
     #Esto es lo que retornaremos al front
     procesar_respuesta()
-    return {"mensaje": "Bienvenido al servidor", "datos":datos}
+    print ({"mensaje": "Bienvenido al servidor", "datos":'hola'})
