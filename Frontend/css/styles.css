@@ -60,6 +60,10 @@ body {
     border:10px solid grey;
     /* border-radius: 10%; */
     width:400px;
+    overflow-y: auto;
+    max-height: 863px;
+    scrollbar-color: #00649d white;
+    scrollbar-width: thin;
   }
 
   .screen__text{
