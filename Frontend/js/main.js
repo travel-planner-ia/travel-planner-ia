@@ -5,22 +5,25 @@ async function getCountries() {
       const data = await response.json();
       console.log(data);
       console.log(data.datos)
-      fillCountries(data.datos);
+      fillCountries(data.datos, "España");
     } catch (error) {
-        fillCountries(['Alemania','Francia']);
-      console.error('Error:', error);
+        console.error('Error:', error);
     }
   }
   
 getCountries();
 
-function fillCountries(listOfCountries){
+function fillCountries(listOfCountries, defaultCountry){
     const select = document.getElementById("destination");
 
     listOfCountries.forEach(country => {
         const option = document.createElement("option");
         option.value = country;
         option.text = country;
+
+        if(country === defaultCountry){
+            option.selected ="selected"
+        }
         select.appendChild(option);
     });
 }
