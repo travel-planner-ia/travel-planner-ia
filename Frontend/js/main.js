@@ -1,4 +1,29 @@
 
+async function getCountries() {
+    try {
+      const response = await fetch('http://localhost:8000/');
+      const data = await response.json();
+      console.log(data);
+      console.log(data.datos)
+      fillCountries(data.datos);
+    } catch (error) {
+        fillCountries(['Alemania','Francia']);
+      console.error('Error:', error);
+    }
+  }
+  
+getCountries();
+
+function fillCountries(listOfCountries){
+    const select = document.getElementById("destination");
+
+    listOfCountries.forEach(country => {
+        const option = document.createElement("option");
+        option.value = country;
+        option.text = country;
+        select.appendChild(option);
+    });
+}
 
 //Envio al back
 async function submitForm() {

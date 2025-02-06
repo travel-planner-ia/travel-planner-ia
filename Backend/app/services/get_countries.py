@@ -36,5 +36,4 @@ def scrap_countries():
 
 def return_countries():
     country_names = scrap_countries()
-    print(country_names)
     return country_names
