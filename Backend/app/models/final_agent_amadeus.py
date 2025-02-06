@@ -4,7 +4,6 @@ from langgraph.graph import StateGraph, START, END
 import os
 from dotenv import load_dotenv
 load_dotenv()
-
 from models.hotel_agent_class import HotelAgent
 from models.flight_agent_class import FlightAgent
 from models.places_agent_class import PlacesAgent
@@ -39,8 +38,11 @@ class GeneralAgent:
     
     def run(self):
         hotel_response = self.hotel_agent.run()
+        # print(f'HOTEL : {hotel_response}')
         flight_response = self.flight_agent.run()
+        # print(f'FLIGHTS : {flight_response}')
         places_response = self.places_agent.run()
+        # print(f'PLACES : {places_response}')
         
         messages = [
             SystemMessage(content=f"""Eres un asistente de viajes especializado en familias. Analiza la siguiente información sobre vuelos, hoteles y lugares de interés
@@ -53,3 +55,12 @@ class GeneralAgent:
         resp = self.agent.invoke({"messages": messages, "verbose": False})
         return resp['messages'].content
     
+if __name__ == "__main__":
+    input_data = {
+        'origin': 'Barcelona',
+        'destination': 'Madrid',
+        'departureDate': '2025-03-01',
+        'returnDate': '2025-04-10'
+    }
+    agent = GeneralAgent(input_data)
+    print(agent.run())

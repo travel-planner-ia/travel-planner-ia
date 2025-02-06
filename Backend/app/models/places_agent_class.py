@@ -4,6 +4,7 @@ from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import SystemMessage
 from pydantic import BaseModel
 from dotenv import load_dotenv
+import asyncio
 from services.get_places_data import get_places_data
 
 # Cargar variables de entorno
@@ -39,6 +40,7 @@ class PlacesAgent:
         return state
 
     def run(self):
+        print(f'PLACES!!!!!!!!!!!!!!!')
         city_name = self.input_data.get("destination")
         places_info = self.get_places_data(city_name=city_name)
         

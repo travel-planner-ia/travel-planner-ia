@@ -9,7 +9,7 @@ from services.travel_rag import Embedder, Scrapper
 # from services.get_countries import return_countries;
 # import bs4
 #print(bs4.__version__)
-
+from models.final_agent_amadeus import GeneralAgent
 
 app = FastAPI()
 
@@ -54,3 +54,14 @@ async def post_to_servidor(frontRequest: Datos):
     #Esto es lo que retornaremos al front
     
     return {"mensaje": "Bienvenido al servidor", "datos":procesar_respuesta()}
+
+# if __name__ == "__main__":
+#     input_data = {
+#         'origin': 'Madrid',
+#         'destination': 'Paris',
+#         'departureDate': '2025-04-12',
+#         'returnDate': '2025-04-19'
+#     }
+#     m = GeneralAgent(input_data=input_data)
+#     res = m.run()
+#     print(res)

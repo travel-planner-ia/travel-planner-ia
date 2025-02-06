@@ -35,6 +35,7 @@ class FlightAgent():
         return state
     
     def run(self):
+        print(f'FLIGHTS!!!!!!!!!!!!!!!')
         origin, destination, departure_date, return_date = self.input_data['origin'], self.input_data['destination'], self.input_data['departureDate'], self.input_data['returnDate']
         results = self.get_flight_data(origin, destination, departure_date, return_date)
         messages = [

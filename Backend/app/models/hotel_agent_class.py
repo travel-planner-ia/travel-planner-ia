@@ -35,6 +35,7 @@ class HotelAgent():
         return state
     
     def run(self):
+        print(f'HOTEL!!!!!!!!!!!!!!!')
         check_in, check_out, city_name = self.input_data['departureDate'], self.input_data['returnDate'], self.input_data['destination']
         results = self.get_hotel_data(check_in, check_out, city_name)
         messages = [

@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from models.amadeus_class import AmadeusAPI
+import asyncio
 
 load_dotenv()
 
@@ -66,3 +67,7 @@ def get_flight_data(origin: str, destination: str, departure_date: str, return_d
                 prompt += f"Precio: {price} {currency}\n\n"
     
     return prompt
+
+# if __name__=='__main__':
+#     prompt = get_flight_data('Barcelona', 'Madrid', '2025-03-01', '2025-04-10')
+#     print(prompt)
