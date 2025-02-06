@@ -35,7 +35,7 @@ class FlightAgent():
         return state
     
     def run(self):
-        origin, destination, departure_date, return_date = self.input_data['origin'], self.input_data['destination'], self.input_data['departure_date'], self.input_data['return_date']
+        origin, destination, departure_date, return_date = self.input_data['origin'], self.input_data['destination'], self.input_data['departureDate'], self.input_data['returnDate']
         results = self.get_flight_data(origin, destination, departure_date, return_date)
         messages = [
             SystemMessage(content=f"""Eres un asistente especializado en información sobre vuelos y viajes familiares. Analiza la 

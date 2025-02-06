@@ -35,7 +35,7 @@ class HotelAgent():
         return state
     
     def run(self):
-        check_in, check_out, city_name = self.input_data['departure_date'], self.input_data['return_date'], self.input_data['destination']
+        check_in, check_out, city_name = self.input_data['departureDate'], self.input_data['returnDate'], self.input_data['destination']
         results = self.get_hotel_data(check_in, check_out, city_name)
         messages = [
             SystemMessage(content=f"""Eres un asistente de viajes experto en familias. Analiza la siguiente información
