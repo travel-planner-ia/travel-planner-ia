@@ -3,8 +3,6 @@ async function getCountries() {
     try {
       const response = await fetch('http://localhost:8000/');
       const data = await response.json();
-      console.log(data);
-      console.log(data.datos)
       fillCountries(data.datos, "España");
     } catch (error) {
         console.error('Error:', error);
@@ -57,7 +55,7 @@ async function submitForm() {
           body: JSON.stringify(data)
         });
         if (response.ok) {
-          alert('Datos enviados con éxito');
+          //alert('Datos enviados con éxito');
 
           //Añadir respuesta al front
           const ANSWER = await response.json();
@@ -65,10 +63,18 @@ async function submitForm() {
         //   const B = JSON.stringify(ANSWER)
         //   console.log(B)
         const TEXT = document.getElementById("screen_text");
-        console.log(TEXT)
-        let li = document.createElement("li");
-        li.appendChild(document.createTextNode(ANSWER.mensaje))
-        TEXT.appendChild(li)
+        //console.log(TEXT)
+        
+        let tiempo = 0;
+        ANSWER.respuesta.forEach(linea =>{
+            setTimeout(()=>{
+                let li = document.createElement("li");
+                li.appendChild(document.createTextNode(linea));
+                TEXT.appendChild(li)
+            }, tiempo)
+            tiempo+=300
+        })
+        
         } else {
           alert('Error al enviar los datos');
         }
