@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from typing import List
 from models.user_request import Datos
@@ -34,9 +34,13 @@ async def get_home():
 
 # Ruta para enviar consultas al servidor
 @app.post("/servidor")
-async def post_to_servidor(datos: Datos):
-    #"datos" es lo que nos llega desde el formulario de front
-    print("datos =", datos)
+async def post_to_servidor(frontRequest: Datos):
+    #"frontRequest" es lo que nos llega desde el formulario de front
+    print("frontRequest =", frontRequest)
+
+    json_de_data = frontRequest.dict(exclude_unset=True)
+    print("json_de_data =", json_de_data)
+
     #Aquí haremos la llamada
     try:
         embedder = Embedder("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")
