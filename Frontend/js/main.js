@@ -55,18 +55,14 @@ async function submitForm() {
           body: JSON.stringify(data)
         });
         if (response.ok) {
-          //alert('Datos enviados con éxito');
 
           //Añadir respuesta al front
           const ANSWER = await response.json();
           console.log(ANSWER)
-        //   const B = JSON.stringify(ANSWER)
-        //   console.log(B)
         const UL = document.getElementById("screen_text");
-        //console.log(TEXT)
         
         let tiempo = 0;
-        ANSWER.respuesta.forEach(linea =>{
+        ANSWER.datos.forEach(linea =>{
             setTimeout(()=>{
                 let li = document.createElement("li");
                 li.appendChild(document.createTextNode(linea));
