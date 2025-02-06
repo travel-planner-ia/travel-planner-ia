@@ -19,6 +19,21 @@ class LLM:
           # Convertir rag_response en un string legible
           rag_text = "\n".join([f"- **{item['query']}**: {item['response']}" for item in rag_response])
 
+        #   prompt = dedent(f"""
+        #     Actúa como un experto asistente de viajes y guía turístico especializado en recomendaciones para viajes familiares. A continuación, te proporciono información clave:  
+
+        #     2. **Información estructurada sobre vuelos, hoteles y lugares de interés:**  
+        #     {amadeus_response}  
+
+        #     Con base a estos datos:  
+
+        #     - Haz recomendaciones personalizadas para familias, considerando comodidad, seguridad y actividades para todas las edades.  
+        #     - Señala opciones destacadas de vuelos y hoteles adecuados para familias.  
+        #     - Propón actividades que puedan disfrutar tanto adultos como niños.  
+        #     - Menciona consejos prácticos para mejorar la experiencia de viaje, como mejor época para visitar o itinerarios optimizados.  
+        #     - Recomendaciones sanitarias, restricciones y consejos sobre transporte, movilidad y seguridad en el país
+        #     Responde de manera clara, directa y organizada para facilitar la planificación del viaje familiar.  
+        #     """)
           prompt = dedent(f"""
             Actúa como un experto asistente de viajes y guía turístico especializado en recomendaciones para viajes familiares. A continuación, te proporciono información clave:  
 

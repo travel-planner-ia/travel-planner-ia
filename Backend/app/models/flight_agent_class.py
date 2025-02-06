@@ -42,7 +42,7 @@ class FlightAgent():
             SystemMessage(content=f"""Eres un asistente especializado en información sobre vuelos y viajes familiares. Analiza la 
                           información sobre vuelos y proporciona una respuesta clara, concisa y que sugiera las mejores opciones
                           para un usuario que desea realizar un viaje en familia. Cuando te refieras a un vuelo, debes de añadir toda la información
-                          asociada al mismo. \n {results}""")
+                          asociada al mismo, no te refieras a los vuelos con números sino por nombres. \n {results}""")
         ]
         resp = self.agent.invoke({"messages": messages, "verbose": True})
         return resp['messages'].content

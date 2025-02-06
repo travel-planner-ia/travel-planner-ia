@@ -12,7 +12,6 @@ import asyncio
 # from services.get_countries import return_countries;
 # import bs4
 #print(bs4.__version__)
-from models.final_agent_amadeus import GeneralAgent
 
 app = FastAPI()
 semaforo = asyncio.Semaphore(1)
@@ -40,25 +39,17 @@ async def procesar_respuestas(front_request):
     # Llamadas a procesos pesados (RAG y Amadeus) en paralelo
     async def obtener_rag():
         try:
-            embedder = Embedder("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")
-            return await embedder.rag_pais(front_request.destination)
+            embedder = Embedder("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")
+            return await embedder.rag_pais(front_request.country)
         except Exception as e:
             print("Error en la llamada a RAG:", e)
             return None
 
     async def obtener_amadeus():
         try:
-            # Simulación de llamada sincrónica convertida en asíncrona
-            await asyncio.sleep(1)  # Simulación de retardo
-            return """
-                **Vuelos:**  
-                - Aerolínea: Air Family  
-                - Vuelo: AF1234  
-                - Precio: 250€  
-                
-                **Hoteles:**  
-                - Hotel Familiar París (150€/noche)  
-            """
+            print(front_request.dict())
+            amadeus = GeneralAgent(front_request.dict())
+            return await asyncio.to_thread(amadeus.run)
         except Exception as e:
             print("Error en la llamada a Amadeus:", e)
             return None
@@ -80,13 +71,25 @@ async def post_to_servidor(frontRequest: Datos):
         respuestas_rag, respuestas_amaedeus = await procesar_respuestas(frontRequest)
 
         try:
-            if respuestas_rag and respuestas_amaedeus:
-                llm = LLM('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')
+            if respuestas_rag and not respuestas_amaedeus:
+                llm = LLM('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')
+                prompt = llm._prompting(respuestas_rag, '', frontRequest)
+                respuesta_final = llm._llamada_llm(prompt)
+                return {"mensaje": "Respuesta procesada", "datos": procesar_respuesta(respuesta_final)}
+            
+            elif not respuestas_rag and respuestas_amaedeus:
+                llm = LLM('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')
+                prompt = llm._prompting([''], respuestas_amaedeus, frontRequest)
+                respuesta_final = llm._llamada_llm(prompt)
+                return {"mensaje": "Respuesta procesada", "datos": procesar_respuesta(respuesta_final)}
+            
+            elif respuestas_rag and respuestas_amaedeus:
+                llm = LLM('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')
                 prompt = llm._prompting(respuestas_rag, respuestas_amaedeus, frontRequest)
                 respuesta_final = llm._llamada_llm(prompt)
                 return {"mensaje": "Respuesta procesada", "datos": procesar_respuesta(respuesta_final)}
             else:
-                return {"error": "Fallo en la obtención de respuestas RAG o Amadeus"}
+                return {"error": "Fallo en la obtención de respuestas RAG y Amadeus"}
         except Exception as e:
             print("Error en la llamada final al LLM:", e)
             return {"error": "Error procesando la respuesta final"}

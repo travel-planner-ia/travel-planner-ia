@@ -8,7 +8,7 @@ load_dotenv()
 
 
 def get_hotel_data(check_in: str, check_out: str, city_name: str, 
-                   radius: int = 1, amenities: List[str] = None, 
+                   radius: int = 5, amenities: List[str] = None, 
                    ratings: List[str] = None) -> Dict[str, Any]:
     """Get hotel data using Amadeus API"""
 

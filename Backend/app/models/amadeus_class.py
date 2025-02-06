@@ -128,7 +128,7 @@ class AmadeusAPI:
             activities = response.json()
             # Limitar a las 30 primeras actividades
             if 'data' in activities:
-                activities['data'] = activities['data'][:30]
+                activities['data'] = activities['data'][:15]
             return activities
         else:
             raise Exception(f"Failed to get activities: {response.text}")
@@ -224,7 +224,7 @@ class AmadeusAPI:
 
         params = {
             "keyword": city_name,
-            "max": 1,  # Solo devolver el primer resultado
+            "max": 5,  # Solo devolver el primer resultado
             "include": "AIRPORTS"  # Incluir aeropuertos si es necesario
         }
 

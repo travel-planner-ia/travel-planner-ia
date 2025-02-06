@@ -9,23 +9,36 @@
 <body>
   <div class="panel">
       <form id="travelForm">
-        <label for="destination">Destino:</label>
-        <!-- <input type="text" id="destination" name="destination" value="Alemania" required> -->
-        <select id="destination" name="destination" required></select>
+        <label for="origin">Ciudad origen:</label>
+        <input type="text" id="origin" name="origin" required>
+        
+        <label for="country">País de destino:</label>
+        <select id="country" name="country" required></select>
+
+        <label for="destination">Ciudad destino:</label>
+        <input type="text" id="destination" name="destination" required>
+        
         <label for="adults">Nº de adultos:</label>
         <input type="number" id="adults" name="adults" value="2" min="1" required>
+        
         <label for="children">Nº de menores:</label>
         <input type="number" id="children" name="children" value="0" min="0" required>
+        
         <label for="departureDate">Fecha de salida:</label>
-        <input type="date" id="departureDate" name="departureDate"  required>
+        <input type="date" id="departureDate" name="departureDate" required>
+        
         <label for="returnDate">Fecha de vuelta:</label>
-        <input type="date" id="returnDate" name="returnDate"  required>
+        <input type="date" id="returnDate" name="returnDate" required>
+        
         <label for="budget">Presupuesto:</label>
         <input type="number" id="budget" name="budget" value="0" required>
+        
         <label for="medicalCondition">Condición médica excepcional:</label>
         <input type="text" id="medicalCondition" name="medicalCondition">
+        
         <label for="additionalInfo">Información adicional:</label>
         <textarea id="additionalInfo" name="additionalInfo"></textarea>
+        
         <label>Tags:</label>
         <div class="checkbox_tags">
             <label><input type="checkbox" name="tags" value="Montaña"> Montaña</label>
@@ -34,12 +47,13 @@
             <label><input type="checkbox" name="tags" value="Deporte"> Deporte</label>
             <label><input type="checkbox" name="tags" value="Cultura" checked> Cultura</label>
         </div>
+        
         <button type="button" onclick="submitForm()">Consultar</button>
       </form>
 
       <div id="screen" class="screen">
         <ul id="screen_text" class="screen__text"></ul>
-        </div>
+      </div>
   </div>
 
   <script src="../js/main.js"></script>

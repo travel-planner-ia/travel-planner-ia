@@ -12,7 +12,7 @@ async function getCountries() {
 getCountries();
 
 function fillCountries(listOfCountries, defaultCountry){
-    const select = document.getElementById("destination");
+    const select = document.getElementById("country");
 
     listOfCountries.forEach(country => {
         const option = document.createElement("option");
@@ -32,6 +32,8 @@ async function submitForm() {
     const formData = new FormData(form);
     const URL = 'http://localhost:8000/servidor';
     const data = {
+      origin: formData.get('origin'),
+      country: formData.get('country'),
       destination: formData.get('destination'),
       adults: formData.get('adults'),
       children: formData.get('children'),
