@@ -41,5 +41,5 @@ async def post_to_servidor(datos: Datos):
     #Respuesta de la llamada
 
     #Esto es lo que retornaremos al front
-    procesar_respuesta()
-    return {"mensaje": "Bienvenido al servidor", "datos":datos}
+    #procesar_respuesta()
+    return {"mensaje": "Bienvenido al servidor", "respuesta":procesar_respuesta()}
