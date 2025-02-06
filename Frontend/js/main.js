@@ -52,7 +52,7 @@ async function submitForm() {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.parse(data)
+          body: JSON.stringify(data)
         });
         if (response.ok) {
           //alert('Datos enviados con éxito');
@@ -62,7 +62,7 @@ async function submitForm() {
           console.log(ANSWER)
         //   const B = JSON.stringify(ANSWER)
         //   console.log(B)
-        const TEXT = document.getElementById("screen_text");
+        const UL = document.getElementById("screen_text");
         //console.log(TEXT)
         
         let tiempo = 0;
@@ -70,7 +70,8 @@ async function submitForm() {
             setTimeout(()=>{
                 let li = document.createElement("li");
                 li.appendChild(document.createTextNode(linea));
-                TEXT.appendChild(li)
+                UL.appendChild(li)
+                UL.lastElementChild.scrollIntoView({ behavior: 'smooth' });
             }, tiempo)
             tiempo+=300
         })
