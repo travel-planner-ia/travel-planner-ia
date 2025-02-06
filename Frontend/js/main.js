@@ -52,7 +52,7 @@ async function submitForm() {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(data)
+          body: JSON.parse(data)
         });
         if (response.ok) {
           //alert('Datos enviados con éxito');
