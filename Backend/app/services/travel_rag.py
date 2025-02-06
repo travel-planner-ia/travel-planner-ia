@@ -154,11 +154,11 @@ class Scrapper:
         # Analizar el HTML con BeautifulSoup
         soup = BeautifulSoup(response.text, "html.parser")
         h2_tags = soup.find_all('h2')
-        
+
         pais_encontrado = False
         for h2_tag in h2_tags:
             country_name = h2_tag.text.strip()
-            
+
             if self.pais.lower() in country_name.lower():
                 row_div = h2_tag.find_next("div", class_="row")
                 if row_div:
@@ -173,12 +173,12 @@ class Scrapper:
 
                 pais_encontrado = True
                 break
-        
+
         if not pais_encontrado:
             print(f"El país {self.pais} no fue encontrado.")
             return []
 
-    def extraer_contenido_pdf_informacion(self, url: str):#Lo saca separando por contenido
+    def extraer_contenido_pdf_informacion(self, url: str):
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
             "Accept": "application/pdf",
@@ -192,8 +192,24 @@ class Scrapper:
 
             with pdfplumber.open(BytesIO(response.content)) as pdf:
                 pdf_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+            chunks = []
+            start = 0
+            chunk_test = []
+            while start < len(pdf_text):
+                end = start + 2000
 
-            return pdf_text
+                if end < len(pdf_text):
+                    last_newline = pdf_text.rfind('\n', start, end)
+                    if last_newline != -1:
+                        end = last_newline
+                    else:
+                        end = start + 2000
+
+                chunks.append(pdf_text[start:end].strip())
+                start = end  # Avanza al siguiente trozo
+
+            chunk_test.append(chunks)
+            return chunk_test[0]
         except requests.exceptions.RequestException as e:
             return f'Error al realizar la solicitud HTTP: {e}'
 
@@ -204,6 +220,9 @@ class Scrapper:
             soup = BeautifulSoup(response.text, "html.parser")
 
             div_principal = soup.find('div', id='ctl00_ctl48_g_b1cd54bc_3d61_4c2b_a319_b305ee4143d3')
+
+            if not div_principal:
+                return ''
             secciones = []
             for section in div_principal.find_all("div", class_="single__text panel ltr-text"):
               contenido = section.get_text(separator='\n', strip=False)
@@ -241,8 +260,16 @@ def rag_pais(pais:str,query:str):
 
   scraper = Scrapper(pais)
   urls = scraper.buscar_urls_pais()
-  url_text= scraper.extraer_contenido_recomendacion_viaje(urls[1])
-  documents = url_text
+  textos=[]
+  for url in urls:
+    try:
+        t = scraper.extraer_contenido_recomendacion_viaje(url)
+        textos.append(t)
+    except:
+        t = scraper.extraer_contenido_pdf_informacion(url)
+        textos.append(t)
+  textos_aplanados = [sublista for lista in textos for sublista in lista]
+  documents = textos_aplanados
   
   document_embeddings = list(embedding_model.embed_documents(documents))
 
