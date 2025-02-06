@@ -3,12 +3,11 @@ from pydantic import BaseModel
 from typing import List
 from models.user_request import Datos
 from fastapi.middleware.cors import CORSMiddleware
-from services.list_of_countries import list_of_countries
-# from services.get_countries import return_countries;
-# import bs4
-#print(bs4.__version__)
+from services.get_countries import return_countries;
+import bs4
+import services.travel_rag as travel_rag
 
-
+print(bs4.__version__)
 app = FastAPI()
 
 origins = [
@@ -27,7 +26,7 @@ app.add_middleware(
 # Ruta inicial
 @app.get("/")
 async def get_home():
-    countries = list_of_countries
+    countries = return_countries()
     return {"mensaje": "Bienvenido a la aplicacion", "datos": countries}
 
 # Ruta para enviar consultas al servidor
@@ -35,5 +34,6 @@ async def get_home():
 async def post_to_servidor(datos: Datos):
     #"datos" es lo que nos llega desde el formulario de front
     print("datos =", datos)
+
     #Esto es lo que retornaremos al front
     return {"mensaje": "Bienvenido al servidor", "datos":datos}
