@@ -8,7 +8,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-groq_api_key = os.getenv("GROQ_API_KEY")
+groq_api_key = os.getenv("GROQ_API_KEY_HOTELS")
 MODEL = "llama-3.3-70b-versatile"
 
 class GraphState(BaseModel):
@@ -35,7 +35,7 @@ class HotelAgent():
         return state
     
     def run(self):
-        check_in, check_out, city_name = self.input_data['check_in'], self.input_data['check_out'], self.input_data['city_name']
+        check_in, check_out, city_name = self.input_data['departure_date'], self.input_data['return_date'], self.input_data['destination']
         results = self.get_hotel_data(check_in, check_out, city_name)
         messages = [
             SystemMessage(content=f"""Eres un asistente de viajes experto en familias. Analiza la siguiente información

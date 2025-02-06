@@ -8,7 +8,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-groq_api_key = os.getenv("GROQ_API_KEY")
+groq_api_key = os.getenv("GROQ_API_KEY_FLIGHT")
 MODEL = "llama-3.3-70b-versatile"
 
 class GraphState(BaseModel):
@@ -46,4 +46,3 @@ class FlightAgent():
         resp = self.agent.invoke({"messages": messages, "verbose": True})
         return resp['messages'].content
 
-    

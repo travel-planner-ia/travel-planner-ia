@@ -210,3 +210,39 @@ class AmadeusAPI:
         
         # Como último recurso, usar el primer código disponible
         return cities[0]["iataCode"]
+    
+
+    def get_lat_lon(self, city_name: str) -> Dict[str, float]:
+        """Get latitude and longitude of a city"""
+        if not self.token:
+            self.get_access_token()
+
+        endpoint = "reference-data/locations/cities"
+        headers = {
+            "Authorization": f"Bearer {self.token}"
+        }
+
+        params = {
+            "keyword": city_name,
+            "max": 1,  # Solo devolver el primer resultado
+            "include": "AIRPORTS"  # Incluir aeropuertos si es necesario
+        }
+
+        url = f"{self.base_url_v1}/{endpoint}"
+
+        response = requests.get(url, headers=headers, params=params)
+
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("data"):
+                city_data = data["data"][0]
+                geo_code = city_data.get("geoCode", {})
+                latitude = geo_code.get("latitude")
+                longitude = geo_code.get("longitude")
+                return {"latitude": latitude, "longitude": longitude}
+            else:
+                raise Exception(f"No se encontró la ciudad: {city_name}")
+        else:
+            print(f"Error response: {response.text}")
+            raise Exception(f"Failed to get latitude and longitude: {response.text}")
+    

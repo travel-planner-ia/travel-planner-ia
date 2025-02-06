@@ -3,7 +3,7 @@ from models.amadeus_class import AmadeusAPI
 
 load_dotenv()
 
-def get_places_data(latitude: float, longitude: float, radius: int = 1) -> str:
+def get_places_data(city_name:str, radius: int = 1) -> str:
     """
     Get activities based on latitude and longitude provided by user.
 
@@ -18,6 +18,10 @@ def get_places_data(latitude: float, longitude: float, radius: int = 1) -> str:
     amadeus = AmadeusAPI()
 
     try:
+        lat_lon_dict = amadeus.get_lat_lon(city_name)
+        latitude = lat_lon_dict.get("latitude")
+        longitude = lat_lon_dict.get("longitude")
+        
         activities = amadeus.get_activities(latitude, longitude, radius)
         
         # Formatear la información de las actividades
