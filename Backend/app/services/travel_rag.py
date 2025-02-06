@@ -2,6 +2,7 @@ import sqlite_vec
 import time
 import argparse
 import sqlite3
+import asyncio
 #from fastembed import TextEmbedding #En caso de que acabemos haciendolo con esta librería que a mi no me funciona
 from langchain.embeddings import HuggingFaceEmbeddings
 from groq import Groq
@@ -12,6 +13,8 @@ from tqdm import tqdm
 import numpy as np
 from textwrap import dedent
 import requests
+import aiohttp
+import httpx
 from bs4 import BeautifulSoup
 import pdfplumber
 from io import BytesIO
@@ -47,14 +50,18 @@ class Embedder:
         sqlite_vec.load(self.db)
         self.db.enable_load_extension(False)
 
-    def call_model(self, prompt: str, messages=[]) -> ChatCompletionMessage:
+    async def call_model(self, prompt: str, messages=[]) -> ChatCompletionMessage:
         messages.append(
             {
                 "role": "user",
                 "content": prompt,
             }
         )
-        response = self.client.chat.completions.create(
+        response = await asyncio.to_thread(
+            # self.client.chat.completions.create(
+            #     model=self.model, messages=messages, temperature=self.temperature
+            # )
+            self.client.chat.completions.create,
             model=self.model, messages=messages, temperature=self.temperature
         )
         return response.choices[0].message.content
@@ -97,7 +104,7 @@ class Embedder:
         ).fetchall()
         return "\n-----\n".join([item[2] for item in results])
     
-    def ask_question(self, query: str) -> str:
+    async def ask_question(self, query: str) -> str:
         messages = [
             {
                 "role": "system",
@@ -115,7 +122,7 @@ class Embedder:
         to answer the question:
         {query}
         """)
-        return self.call_model(prompt, messages), context
+        return await self.call_model(prompt, messages), context
     
     def get_travel_queries(self, pais: str):
         travel_queries = [
@@ -131,12 +138,17 @@ class Embedder:
 
         return [{"id": i+1, "query": query.format(pais)} for i, query in enumerate(travel_queries)]
     
-    def rag_pais(self, pais: str):
+    async def rag_pais(self, pais: str):
         # Para borrar las tablas y volver a crearlas a medida que se hacen pruebas
+
         self.db.execute("DROP TABLE IF EXISTS chunk;")
+
         self.db.execute("DROP TABLE IF EXISTS documents;")
+    
         self.db.execute("DROP TABLE IF EXISTS chunk_embeddings;")
+        
         self.db.execute("DROP TABLE IF EXISTS chunks;")
+        
 
         self.db.execute(
             """
@@ -158,15 +170,13 @@ class Embedder:
             """
         )
         
-
         scraper = Scrapper(pais)
-        urls = scraper.buscar_urls_pais()
-        url_text = scraper.extraer_contenido_recomendacion_viaje(urls[1])
+        urls = await scraper.buscar_urls_pais()
+        url_text = await scraper.extraer_contenido_recomendacion_viaje(urls[1])
         documents = url_text
         
         document_embeddings = list(self.embedding_model.embed_documents(documents))
         document_embeddings = np.array(document_embeddings)
-        
 
         self.db.execute(
             f"""
@@ -176,7 +186,7 @@ class Embedder:
                 );
             """
         )
-        
+
         with self.db:
             for doc in documents:
                 self.db.execute("INSERT INTO documents(text) VALUES(?)", [doc])
@@ -190,7 +200,7 @@ class Embedder:
         queries_con_pais = self.get_travel_queries(pais)
 
         for query in queries_con_pais:
-            response = self.ask_question(query["query"])  # Extrae la consulta del diccionario
+            response = await self.ask_question(query["query"])  # Extrae la consulta del diccionario
             self.responses.append({"id": query["id"], "query": query["query"], "response": response})
 
         return self.responses
@@ -201,46 +211,47 @@ class Scrapper:
     def __init__(self, pais: str):
         self.pais = pais
         self.base_url = "https://www.exteriores.gob.es/es/ServiciosAlCiudadano/Paginas/Recomendaciones-de-viaje.aspx#alphabet"
-        self.session = requests.Session()
-        self.session.headers.update({
+        self.client = httpx.AsyncClient(headers={
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
         })
 
-    def buscar_urls_pais(self):
+    async def buscar_urls_pais(self):
         try:
-            response = self.session.get(self.base_url, timeout=10)  # Timeout de 10 segundos
+            response = await self.client.get(self.base_url, timeout=10.0)
             response.raise_for_status()
-        except requests.exceptions.RequestException as e:
+            text = response.text
+
+            # Analizar el HTML con BeautifulSoup
+            soup = BeautifulSoup(text, "html.parser")
+            h2_tags = soup.find_all('h2')
+            
+            pais_encontrado = False
+            for h2_tag in h2_tags:
+                country_name = h2_tag.text.strip()
+                
+                if self.pais.lower() in country_name.lower():
+                    row_div = h2_tag.find_next("div", class_="row")
+                    if row_div:
+                        links = row_div.find_all("a", href=True)
+                        urls = ["https://www.exteriores.gob.es" + link["href"] for link in links]
+
+                        print(f"País encontrado: {country_name}")
+                        for i, url in enumerate(urls[:3], 1):
+                            print(f"URL {i}: {url}")
+
+                        return urls[:3]  # Retornar solo las tres primeras URLs encontradas
+
+                    pais_encontrado = True
+                    break
+            
+            if not pais_encontrado:
+                print(f"El país {self.pais} no fue encontrado.")
+                return []
+                
+        except aiohttp.ClientError as e:
             return f'Error al realizar la solicitud HTTP: {e}'
 
-        # Analizar el HTML con BeautifulSoup
-        soup = BeautifulSoup(response.text, "html.parser")
-        h2_tags = soup.find_all('h2')
-        
-        pais_encontrado = False
-        for h2_tag in h2_tags:
-            country_name = h2_tag.text.strip()
-            
-            if self.pais.lower() in country_name.lower():
-                row_div = h2_tag.find_next("div", class_="row")
-                if row_div:
-                    links = row_div.find_all("a", href=True)
-                    urls = ["https://www.exteriores.gob.es" + link["href"] for link in links]
-
-                    print(f"País encontrado: {country_name}")
-                    for i, url in enumerate(urls[:3], 1):
-                        print(f"URL {i}: {url}")
-
-                    return urls[:3]  # Retornar solo las tres primeras URLs encontradas
-
-                pais_encontrado = True
-                break
-        
-        if not pais_encontrado:
-            print(f"El país {self.pais} no fue encontrado.")
-            return []
-
-    def extraer_contenido_pdf_informacion(self, url: str):#Lo saca separando por contenido
+    async def extraer_contenido_pdf_informacion(self, url: str):#Lo saca separando por contenido
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
             "Accept": "application/pdf",
@@ -249,32 +260,33 @@ class Scrapper:
         }
 
         try:
-            response = self.session.get(url, headers=headers)
+            response = await self.client.get(url, headers=headers)
             response.raise_for_status()
 
             with pdfplumber.open(BytesIO(response.content)) as pdf:
                 pdf_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
 
             return pdf_text
-        except requests.exceptions.RequestException as e:
+        except aiohttp.ClientError as e:
             return f'Error al realizar la solicitud HTTP: {e}'
 
-    def extraer_contenido_recomendacion_viaje(self, url: str):
+    async def extraer_contenido_recomendacion_viaje(self, url: str):
         try:
-            response = self.session.get(url)
+            response = await self.client.get(url)
             response.raise_for_status()
-            soup = BeautifulSoup(response.text, "html.parser")
+            text = response.text
+            soup = BeautifulSoup(text, "html.parser")
 
             div_principal = soup.find('div', id='ctl00_ctl48_g_b1cd54bc_3d61_4c2b_a319_b305ee4143d3')
             secciones = []
             for section in div_principal.find_all("div", class_="single__text panel ltr-text"):
-              contenido = section.get_text(separator='\n', strip=False)
-              secciones.append(contenido)
+                contenido = section.get_text(separator='\n', strip=False)
+                secciones.append(contenido)
             return secciones
-        except requests.exceptions.RequestException as e:
+        except aiohttp.ClientError as e:
             return f'Error al realizar la solicitud HTTP: {e}'
-
-# if __name__ == "__main__":
+        
+# async def funcion():
 #     parser = argparse.ArgumentParser(description="RAG")
 #     parser.add_argument("pais", type=str, help="País")
 #     args = parser.parse_args()
@@ -282,6 +294,9 @@ class Scrapper:
 #     # query_rag = QueryRAG()
 #     embedder = Embedder("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")
 
-#     respuestas = embedder.rag_pais(args.pais)
+#     respuestas = await embedder.rag_pais(args.pais)
 #     for res in respuestas:
 #       print(res)
+
+# if __name__ == "__main__":
+#     funcion()
