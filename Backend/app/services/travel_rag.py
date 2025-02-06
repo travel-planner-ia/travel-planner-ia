@@ -15,123 +15,185 @@ import requests
 from bs4 import BeautifulSoup
 import pdfplumber
 from io import BytesIO
-
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=2048, chunk_overlap=128)
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 EMBEDDING_PROMPT = """
 {chunk}
 """
 
 SYSTEM_PROMPT = """
-You are an expert in extracting key insights from texts. Your task is to summarize and highlight the most important features.
-
-Use only the provided context to identify the key characteristics. If you don't find information about the topic just answer that you can't answer that question with the infomation provided.
+You are an expert tourist guide and expert in extracting key insights from texts. Your task is to provide accurate and engaging answers based only on the given context.
+ 
+If the information about a topic is not present in the provided context, simply state that you cannot answer the question with the information available.
 """
 
-#Las diferents Api-keys que he ido generando en Groq, según se vayan agotando probad con otras, las dos primeras creo que estan baneadas
-#client = Groq(api_key="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")
-#client = Groq(api_key='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')
-#client = Groq(api_key = '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')
-client = Groq(api_key="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")
-#client = Groq(api_key = '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')
+#Embbeder y RAG
+class Embedder:
 
-MODEL = "llama-3.3-70b-versatile"
-TEMPERATURE = 0
+    def __init__(self, api_key: str, db_path: str = "readmes.sqlite3"):
+            self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=2048, chunk_overlap=128)
+            self.embedding_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+            self.client = Groq(api_key=api_key)
+            self.model = "llama-3.3-70b-versatile"
+            self.temperature = 0
+            self.db = sqlite3.connect(db_path)
+            self._setup_db()
+            self.responses = []
 
-db = sqlite3.connect("readmes.sqlite3")
-db.enable_load_extension(True)
-sqlite_vec.load(db)
-db.enable_load_extension(False)
+    def _setup_db(self):
+        self.db.enable_load_extension(True)
+        sqlite_vec.load(self.db)
+        self.db.enable_load_extension(False)
 
-
-#Función que vectoriza
-embedding_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-
-
-def call_model(prompt: str, messages=[]) -> ChatCompletionMessage:
-    messages.append(
-        {
-            "role": "user",
-            "content": prompt,
-        }
-    )
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=messages,
-        temperature=TEMPERATURE,
-    )
-    return response.choices[0].message.content
-
-def non_contextual_chunks(chunks, document: str):
-    contextual_chunks = []
-    for chunk in chunks:
-        prompt = EMBEDDING_PROMPT.format(chunk=chunk)
-        #chunk_context = call_model(prompt)
-        contextual_chunks.append(f"{prompt}")
-    return contextual_chunks
-
-
-def save_chunks(chunks,doc_id):
-    chunk_embeddings = list(embedding_model.embed_documents(chunks))
-    for chunk, embedding in zip(chunks, chunk_embeddings):
-        result = db.execute(
-            "INSERT INTO chunks(document_id, text) VALUES(?, ?)", [doc_id, chunk]
+    def call_model(self, prompt: str, messages=[]) -> ChatCompletionMessage:
+        messages.append(
+            {
+                "role": "user",
+                "content": prompt,
+            }
         )
-        chunk_id = result.lastrowid
-        db.execute(
-            "INSERT INTO chunk_embeddings(id, embedding) VALUES (?, ?)",
-            [chunk_id, serialize_float32(embedding)],
+        response = self.client.chat.completions.create(
+            model=self.model, messages=messages, temperature=self.temperature
+        )
+        return response.choices[0].message.content
+    
+    def non_contextual_chunks(self, chunks, document: str):
+        contextual_chunks = []
+        for chunk in chunks:
+            prompt = EMBEDDING_PROMPT.format(chunk=chunk)
+            contextual_chunks.append(f"{prompt}")
+        return contextual_chunks
+    
+    def save_chunks(self, chunks, doc_id):
+        chunk_embeddings = list(self.embedding_model.embed_documents(chunks))
+        for chunk, embedding in zip(chunks, chunk_embeddings):
+            result = self.db.execute(
+                "INSERT INTO chunks(document_id, text) VALUES(?, ?)", [doc_id, chunk]
+            )
+            chunk_id = result.lastrowid
+            self.db.execute(
+                "INSERT INTO chunk_embeddings(id, embedding) VALUES (?, ?)",
+                [chunk_id, serialize_float32(embedding)],
+            )
+
+    def guardar_chunk(self, doc_text, doc_id):
+        chunks_doc = self.text_splitter.split_text(doc_text)
+        non_c_chunks = self.non_contextual_chunks(chunks_doc, doc_text)
+        self.save_chunks(non_c_chunks, doc_id)
+        return "Chunks guardados con éxito"
+    
+    def retrieve_context(self, query: str, k: int = 3) -> str:
+        query_embedding = list(self.embedding_model.embed_documents([query]))[0]
+        results = self.db.execute(
+            """
+            SELECT chunk_embeddings.id, distance, text
+            FROM chunk_embeddings
+            LEFT JOIN chunks ON chunks.id = chunk_embeddings.id
+            WHERE embedding MATCH ? AND k = ?
+            ORDER BY distance
+            """, [serialize_float32(query_embedding), k]
+        ).fetchall()
+        return "\n-----\n".join([item[2] for item in results])
+    
+    def ask_question(self, query: str) -> str:
+        messages = [
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT,
+            },
+        ]
+        context = self.retrieve_context(query)
+        prompt = dedent(f"""
+        Use the following information:
+
+        ```
+        {context}
+        ```
+
+        to answer the question:
+        {query}
+        """)
+        return self.call_model(prompt, messages), context
+    
+    def get_travel_queries(self, pais: str):
+        travel_queries = [
+            "¿Existen áreas en {} que se deban evitar debido a conflictos o riesgos para la seguridad?",
+            "¿Es necesario obtener una visa para ingresar a {}?",
+            "¿Qué documentos de viaje son obligatorios para los ciudadanos españoles en {}?",
+            "¿Se requieren vacunas específicas para viajar a {}?",
+            "¿Qué medios de transporte son más seguros y recomendados para desplazarse dentro de {}?",
+            "¿Hay leyes específicas en {} que los turistas deben conocer para evitar infracciones?",
+            "¿Cuál es la moneda oficial de {} y es ampliamente aceptada?",
+            "¿Dónde se encuentra la embajada o consulado español más cercano en {}?"
+        ]
+
+        return [{"id": i+1, "query": query.format(pais)} for i, query in enumerate(travel_queries)]
+    
+    def rag_pais(self, pais: str):
+        # Para borrar las tablas y volver a crearlas a medida que se hacen pruebas
+        self.db.execute("DROP TABLE IF EXISTS chunk;")
+        self.db.execute("DROP TABLE IF EXISTS documents;")
+        self.db.execute("DROP TABLE IF EXISTS chunk_embeddings;")
+        self.db.execute("DROP TABLE IF EXISTS chunks;")
+
+        self.db.execute(
+            """
+            CREATE TABLE documents(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                text TEXT
+            );
+            """
         )
 
+        self.db.execute(
+            """
+            CREATE TABLE chunks(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER,
+                text TEXT,
+                FOREIGN KEY(document_id) REFERENCES documents(id)
+            );
+            """
+        )
+        
 
-# Función para hacer una petición con manejo del límite de tokens
-def guardar_chunk(doc_text,doc_id):
-      chunks_doc = text_splitter.split_text(doc_text)
-      non_c_chunks = non_contextual_chunks(chunks_doc, doc_text)
-      save_chunks(non_c_chunks,doc_id)
-      return('Chunks guardados con éxito')
+        scraper = Scrapper(pais)
+        urls = scraper.buscar_urls_pais()
+        url_text = scraper.extraer_contenido_recomendacion_viaje(urls[1])
+        documents = url_text
+        
+        document_embeddings = list(self.embedding_model.embed_documents(documents))
+        document_embeddings = np.array(document_embeddings)
+        
 
-def retrieve_context(
-    query: str, k: int = 3, embedding_model: HuggingFaceEmbeddings = embedding_model
-) -> str:
-    query_embedding = list(embedding_model.embed_documents([query]))[0]
-    results = db.execute(
-        """
-    SELECT
-        chunk_embeddings.id,
-        distance,
-        text
-    FROM chunk_embeddings
-    LEFT JOIN chunks ON chunks.id = chunk_embeddings.id
-    WHERE embedding MATCH ? AND k = ?
-    ORDER BY distance
-        """,
-        [serialize_float32(query_embedding), k],
-    ).fetchall()
-    return "\n-----\n".join([item[2] for item in results])
+        self.db.execute(
+            f"""
+                CREATE VIRTUAL TABLE chunk_embeddings USING vec0(
+                    id INTEGER PRIMARY KEY,
+                    embedding FLOAT[{document_embeddings[0].shape[0]}],
+                );
+            """
+        )
+        
+        with self.db:
+            for doc in documents:
+                self.db.execute("INSERT INTO documents(text) VALUES(?)", [doc])
+        
+        with self.db:
+            document_rows = self.db.execute("SELECT id, text FROM documents").fetchall()
+            for row in document_rows:
+                doc_id, doc_text = row
+                self.guardar_chunk(doc_text, doc_id)
 
+        queries_con_pais = self.get_travel_queries(pais)
 
-def ask_question(query: str) -> str:
-    messages = [
-        {
-            "role": "system",
-            "content": SYSTEM_PROMPT,
-        },
-    ]
-    context = retrieve_context(query)
-    prompt = dedent(
-        f"""
-Use the following information:
+        for query in queries_con_pais:
+            response = self.ask_question(query["query"])  # Extrae la consulta del diccionario
+            self.responses.append({"id": query["id"], "query": query["query"], "response": response})
 
-```
-{context}
-```
-
-to answer the question:
-{query}
-    """
-    )
-    return call_model(prompt, messages), context
+        return self.responses
 
 #WebScrapper
 class Scrapper:
@@ -154,11 +216,11 @@ class Scrapper:
         # Analizar el HTML con BeautifulSoup
         soup = BeautifulSoup(response.text, "html.parser")
         h2_tags = soup.find_all('h2')
-
+        
         pais_encontrado = False
         for h2_tag in h2_tags:
             country_name = h2_tag.text.strip()
-
+            
             if self.pais.lower() in country_name.lower():
                 row_div = h2_tag.find_next("div", class_="row")
                 if row_div:
@@ -173,12 +235,12 @@ class Scrapper:
 
                 pais_encontrado = True
                 break
-
+        
         if not pais_encontrado:
             print(f"El país {self.pais} no fue encontrado.")
             return []
 
-    def extraer_contenido_pdf_informacion(self, url: str):
+    def extraer_contenido_pdf_informacion(self, url: str):#Lo saca separando por contenido
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
             "Accept": "application/pdf",
@@ -192,24 +254,8 @@ class Scrapper:
 
             with pdfplumber.open(BytesIO(response.content)) as pdf:
                 pdf_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-            chunks = []
-            start = 0
-            chunk_test = []
-            while start < len(pdf_text):
-                end = start + 2000
 
-                if end < len(pdf_text):
-                    last_newline = pdf_text.rfind('\n', start, end)
-                    if last_newline != -1:
-                        end = last_newline
-                    else:
-                        end = start + 2000
-
-                chunks.append(pdf_text[start:end].strip())
-                start = end  # Avanza al siguiente trozo
-
-            chunk_test.append(chunks)
-            return chunk_test[0]
+            return pdf_text
         except requests.exceptions.RequestException as e:
             return f'Error al realizar la solicitud HTTP: {e}'
 
@@ -220,9 +266,6 @@ class Scrapper:
             soup = BeautifulSoup(response.text, "html.parser")
 
             div_principal = soup.find('div', id='ctl00_ctl48_g_b1cd54bc_3d61_4c2b_a319_b305ee4143d3')
-
-            if not div_principal:
-                return ''
             secciones = []
             for section in div_principal.find_all("div", class_="single__text panel ltr-text"):
               contenido = section.get_text(separator='\n', strip=False)
@@ -231,73 +274,14 @@ class Scrapper:
         except requests.exceptions.RequestException as e:
             return f'Error al realizar la solicitud HTTP: {e}'
 
-def rag_pais(pais:str,query:str):
-    #Para borrar las tablas y volver a crearlas a medida que se hacen pruebas
-  db.execute("DROP TABLE IF EXISTS chunk;")
-  db.execute("DROP TABLE IF EXISTS documents;")
-  db.execute("DROP TABLE IF EXISTS chunk_embeddings;")
-  db.execute("DROP TABLE IF EXISTS chunks;")
+# if __name__ == "__main__":
+#     parser = argparse.ArgumentParser(description="RAG")
+#     parser.add_argument("pais", type=str, help="País")
+#     args = parser.parse_args()
 
-  db.execute(
-      """
-  CREATE TABLE documents(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      text TEXT
-  );
-  """
-  )
+#     # query_rag = QueryRAG()
+#     embedder = Embedder("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")
 
-  db.execute(
-      """
-  CREATE TABLE chunks(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      document_id INTEGER,
-      text TEXT,
-      FOREIGN KEY(document_id) REFERENCES documents(id)
-  );
-  """
-  )
-
-  scraper = Scrapper(pais)
-  urls = scraper.buscar_urls_pais()
-  textos=[]
-  for url in urls:
-    try:
-        t = scraper.extraer_contenido_recomendacion_viaje(url)
-        textos.append(t)
-    except:
-        t = scraper.extraer_contenido_pdf_informacion(url)
-        textos.append(t)
-  textos_aplanados = [sublista for lista in textos for sublista in lista]
-  documents = textos_aplanados
-  
-  document_embeddings = list(embedding_model.embed_documents(documents))
-
-  document_embeddings = np.array(document_embeddings)
-  db.execute(
-      f"""
-          CREATE VIRTUAL TABLE chunk_embeddings USING vec0(
-            id INTEGER PRIMARY KEY,
-            embedding FLOAT[{document_embeddings[0].shape[0]}],
-          );
-      """
-  )
-  with db:
-      for doc in documents:
-          db.execute("INSERT INTO documents(text) VALUES(?)", [doc])
-  with db:
-    document_rows = db.execute("SELECT id, text FROM documents").fetchall()
-    for row in document_rows:
-          doc_id, doc_text = row
-          guardar_chunk(doc_text,doc_id)
-
-  
-  response, context = ask_question(query)
-  return(response)
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="RAG")
-    parser.add_argument("pais", type=str, help="País")
-    parser.add_argument("query", type=str, help="Query")
-    args = parser.parse_args()
-    print(rag_pais(args.pais, args.query))
+#     respuestas = embedder.rag_pais(args.pais)
+#     for res in respuestas:
+#       print(res)

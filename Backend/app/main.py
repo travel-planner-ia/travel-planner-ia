@@ -28,7 +28,7 @@ app.add_middleware(
 # Ruta inicial
 @app.get("/")
 async def get_home():
-    countries = list_of_countries
+    countries = return_countries()
     return {"mensaje": "Bienvenido a la aplicacion", "datos": countries}
 
 # Ruta para enviar consultas al servidor
