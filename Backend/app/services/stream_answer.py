@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 import json
 load_dotenv()
 
-print(os.getenv('USER_EMAIL'))
-print(os.getenv('API_KEY'))
+# print(os.getenv('USER_EMAIL'))
+# print(os.getenv('API_KEY'))
 # Endpoint y API Key
 url = "https://api-nextai-challenge.codingbuddy-4282826dce7d155229a320302e775459-0000.eu-de.containers.appdomain.cloud/aigen/research/stream/wx"
 
