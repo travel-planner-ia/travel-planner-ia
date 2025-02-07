@@ -30,30 +30,26 @@ function fillCountries(listOfCountries, defaultCountry){
 
 // Función para mostrar el spinner
 function showSpinner() {
-    const spinnerContainer = document.createElement("div");
-    spinnerContainer.classList.add("spinner-container");
+    const screen = document.getElementById("screen");
     const spinner = document.createElement("div");
     spinner.classList.add("spinner");
-    spinnerContainer.appendChild(spinner);
-    document.body.appendChild(spinnerContainer);
+    screen.appendChild(spinner);
   }
   
   // Función para ocultar el spinner
   function hideSpinner() {
-    const spinnerContainer = document.querySelector(".spinner-container");
-    if (spinnerContainer) {
-      spinnerContainer.remove();
+    const spinner = document.querySelector(".spinner");
+    if (spinner) {
+      spinner.remove();
     }
   }
   
   // Modifica la función submitForm para mostrar el spinner antes de enviar la petición
-  
-    //showSpinner(); // Mostrar el spinner
-// Método para enviar la información del formulario al backend.
-async function submitForm() {
+  async function submitForm() {
+    showSpinner(); // Mostrar el spinner
     const form = document.getElementById('travelForm');
     const formData = new FormData(form);
-    const URL = 'http://localhost:8000/servidor';
+    const URL = 'http://localhost:8000/servidor';';'
     const data = {
       origin: formData.get('origin'),
       country: formData.get('country'),
@@ -89,7 +85,8 @@ async function submitForm() {
           ANSWER.datos.forEach(linea => {
             setTimeout(() => {
               let li = document.createElement("li");
-              li.appendChild(document.createTextNode(formateoTexto(linea)));
+              //li.innerHTML = formateoTexto(linea)
+              li.appendChild(document.createTextNode(linea));
               UL.appendChild(li);
               UL.lastElementChild.scrollIntoView({ behavior: 'smooth' });
             }, tiempo);
@@ -109,10 +106,11 @@ async function submitForm() {
   }
   
 
-function formateoTexto(linea){
-    let textoFormateado = linea.replace(/\*\*(\w+)\*\*/g, (match, grupo) => `<b>${grupo.toUpperCase()}</b><br>`);
-    console.log(textoFormateado)
-}
+  function formateoTexto(linea){
+    let textoFormateado = linea.replace(/\n/g, '<br>'); // Reemplaza \n por <br>
+    textoFormateado = textoFormateado.replace(/\*\*(\w+)\*\*/g, (match, grupo) => `<b>${grupo.toUpperCase()}</b><br>`);
+    return textoFormateado;
+  }
 
 // Método para validar las fechas de salida y regreso.
 function validateDates(departureDate, returnDate) {
