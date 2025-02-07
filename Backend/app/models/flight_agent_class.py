@@ -15,7 +15,8 @@ class GraphState(BaseModel):
     messages: list
     number_interactions: int = 0
     verbose: bool = True
-
+    
+# Clase que representa el agente de vuelos encargado de obtener información sobre vuelos.
 class FlightAgent():
     def __init__(self, input_data):
         self.model = ChatGroq(temperature=0, model_name=MODEL, api_key=groq_api_key)

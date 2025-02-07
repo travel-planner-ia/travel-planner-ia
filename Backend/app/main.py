@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List
 from models.user_request import Datos
 from fastapi.middleware.cors import CORSMiddleware
-from services.list_of_countries import list_of_countries
+from database.list_of_countries import list_of_countries
 from services.stream_answer import stream_answer, procesar_respuesta;
 from services.travel_rag import Embedder, Scrapper
 from models.final_agent_amadeus import GeneralAgent
@@ -12,15 +12,13 @@ import asyncio
 import os
 from dotenv import load_dotenv
 load_dotenv()
-# from services.get_countries import return_countries;
-# import bs4
-#print(bs4.__version__)
 
+# Script principal de la aplicación que carga el servidor de FastAPI.
 app = FastAPI()
 semaforo = asyncio.Semaphore(1)
 origins = [
-    "http://localhost:3000",  # origen del frontend
-    "null"  # origen del frontend cuando se ejecuta desde un archivo local
+    "http://localhost:3000",  # Origen del frontend
+    "null"  # Origen del frontend cuando se ejecuta desde un archivo local
 ]
 
 app.add_middleware(
@@ -37,7 +35,7 @@ async def get_home():
     countries = list_of_countries
     return {"mensaje": "Bienvenido a la aplicacion", "datos": countries}
 
-
+# Método encargado de procesar las respuestas de RAG y Amadeus de manera asíncrona.
 async def procesar_respuestas(front_request):
     # Llamadas a procesos pesados (RAG y Amadeus) en paralelo
     async def obtener_rag():
@@ -64,12 +62,12 @@ async def procesar_respuestas(front_request):
 
     return respuestas_rag, respuestas_amadeus
 
-
+# Endpoint que recibe la información solicitada por el usuario y procesa las respuestas de RAG y Amadeus.
 @app.post("/servidor")
 async def post_to_servidor(frontRequest: Datos):
     print("frontRequest =", frontRequest)
 
-    # Procesa tareas concurrentemente con semáforo para la sección crítica
+    # Procesa tareas concurrentemente con semáforo para la sección crítica.
     async with semaforo:
         respuestas_rag, respuestas_amaedeus = await procesar_respuestas(frontRequest)
 

@@ -4,6 +4,7 @@ import asyncio
 
 load_dotenv()
 
+# Método para obtener las actividades disponibles por ciudad.
 def get_places_data(city_name:str, radius: int = 1) -> str:
     """
     Get activities based on latitude and longitude provided by user.
