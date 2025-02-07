@@ -85,7 +85,7 @@ async function submitForm() {
         ANSWER.datos.forEach(linea => {
           setTimeout(() => {
             let li = document.createElement("li");
-            li.appendChild(document.createTextNode(formateoTexto(linea)));
+            li.appendChild(document.createTextNode(linea));
             UL.appendChild(li);
             UL.lastElementChild.scrollIntoView({ behavior: 'smooth' });
           }, tiempo);
