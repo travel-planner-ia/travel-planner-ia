@@ -9,6 +9,9 @@ from services.travel_rag import Embedder, Scrapper
 from models.final_agent_amadeus import GeneralAgent
 from llm import LLM
 import asyncio
+import os
+from dotenv import load_dotenv
+load_dotenv()
 # from services.get_countries import return_countries;
 # import bs4
 #print(bs4.__version__)
@@ -39,7 +42,7 @@ async def procesar_respuestas(front_request):
     # Llamadas a procesos pesados (RAG y Amadeus) en paralelo
     async def obtener_rag():
         try:
-            embedder = Embedder("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")
+            embedder = Embedder(os.getenv("RAG_API_KEY"))
             return await embedder.rag_pais(front_request.country)
         except Exception as e:
             print("Error en la llamada a RAG:", e)
@@ -72,19 +75,19 @@ async def post_to_servidor(frontRequest: Datos):
 
         try:
             if respuestas_rag and not respuestas_amaedeus:
-                llm = LLM('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')
+                llm = LLM(os.getenv("RAG_API_KEY"))
                 prompt = llm._prompting(respuestas_rag, '', frontRequest)
                 respuesta_final = llm._llamada_llm(prompt)
                 return {"mensaje": "Respuesta procesada", "datos": procesar_respuesta(respuesta_final)}
             
             elif not respuestas_rag and respuestas_amaedeus:
-                llm = LLM('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')
+                llm = LLM(os.getenv("RAG_API_KEY"))
                 prompt = llm._prompting([''], respuestas_amaedeus, frontRequest)
                 respuesta_final = llm._llamada_llm(prompt)
                 return {"mensaje": "Respuesta procesada", "datos": procesar_respuesta(respuesta_final)}
             
             elif respuestas_rag and respuestas_amaedeus:
-                llm = LLM('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')
+                llm = LLM(os.getenv("RAG_API_KEY"))
                 prompt = llm._prompting(respuestas_rag, respuestas_amaedeus, frontRequest)
                 respuesta_final = llm._llamada_llm(prompt)
                 return {"mensaje": "Respuesta procesada", "datos": procesar_respuesta(respuesta_final)}
