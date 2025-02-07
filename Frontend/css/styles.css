@@ -82,29 +82,6 @@ body {
     margin-top: 10px;
   }
 
-  .spinner {
-    border: 8px solid grey;
-    border-top: 8px solid #00649d;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    animation: spin 2s linear infinite;
-    position: absolute;
-    top: 50%;
-    left: 68%;
-    transform: translate(-50%, -50%);
-  }
-  
-  @keyframes spin {
-    0% {
-      transform: translate(-50%, -50%) rotate(0deg);
-    }
-    100% {
-      transform: translate(-50%, -50%) rotate(360deg);
-    }
-  }
-  
-  
 
   @media (max-width: 768px) {
     .panel {
