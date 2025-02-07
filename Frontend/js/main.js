@@ -1,4 +1,5 @@
 
+// Método para obtener la lista de países desde el backend.
 async function getCountries() {
     try {
       const response = await fetch('http://localhost:8000/');
@@ -11,6 +12,7 @@ async function getCountries() {
   
 getCountries();
 
+// Método para cargar la lista de países en el selector.
 function fillCountries(listOfCountries, defaultCountry){
     const select = document.getElementById("country");
 
@@ -45,8 +47,10 @@ function showSpinner() {
   }
   
   // Modifica la función submitForm para mostrar el spinner antes de enviar la petición
-  async function submitForm() {
-    showSpinner(); // Mostrar el spinner
+  
+    //showSpinner(); // Mostrar el spinner
+// Método para enviar la información del formulario al backend.
+async function submitForm() {
     const form = document.getElementById('travelForm');
     const formData = new FormData(form);
     const URL = 'http://localhost:8000/servidor';
@@ -110,7 +114,7 @@ function formateoTexto(linea){
     console.log(textoFormateado)
 }
 
-//Validar fechas
+// Método para validar las fechas de salida y regreso.
 function validateDates(departureDate, returnDate) {
 // Verificar si ambas fechas son válidas
 if (!isValidDate(departureDate) || !isValidDate(returnDate)) {
@@ -134,7 +138,7 @@ if (returnDateObj < departureDateObj) {
 return true;
 }
   
-// Función auxiliar para verificar si una fecha es válida
+// Función auxiliar para verificar si una fecha es válida.
 function isValidDate(dateString) {
 const regex = /^\d{4}-\d{2}-\d{2}$/;
 if (!regex.test(dateString)) {

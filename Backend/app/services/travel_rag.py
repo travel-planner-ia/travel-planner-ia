@@ -32,9 +32,9 @@ You are an expert tourist guide and expert in extracting key insights from texts
 If the information about a topic is not present in the provided context, simply state that you cannot answer the question with the information available.
 """
 
-#Embbeder y RAG
+# Clase para manejar embeddings y recuperación de información (RAG)
 class Embedder:
-
+    # Configurar modelo de embeddings y conexión a base de datos
     def __init__(self, api_key: str, db_path: str = "readmes.sqlite3"):
             self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=2048, chunk_overlap=128)
             self.embedding_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
@@ -45,11 +45,13 @@ class Embedder:
             self._setup_db()
             self.responses = []
 
+    # Cargar la extensión de SQLite para trabajar con vectores
     def _setup_db(self):
         self.db.enable_load_extension(True)
         sqlite_vec.load(self.db)
         self.db.enable_load_extension(False)
-
+    
+    # Llamada al modelo de lenguaje con un prompt
     async def call_model(self, prompt: str, messages=[]) -> ChatCompletionMessage:
         messages.append(
             {
@@ -66,6 +68,7 @@ class Embedder:
         )
         return response.choices[0].message.content
     
+    # Crear chunks no contextuales
     def non_contextual_chunks(self, chunks, document: str):
         contextual_chunks = []
         for chunk in chunks:
@@ -73,6 +76,7 @@ class Embedder:
             contextual_chunks.append(f"{prompt}")
         return contextual_chunks
     
+    # Guardar chunks en la base de datos
     def save_chunks(self, chunks, doc_id):
         chunk_embeddings = list(self.embedding_model.embed_documents(chunks))
         for chunk, embedding in zip(chunks, chunk_embeddings):
@@ -85,12 +89,14 @@ class Embedder:
                 [chunk_id, serialize_float32(embedding)],
             )
 
+    # Guardar chunks en la base de datos
     def guardar_chunk(self, doc_text, doc_id):
         chunks_doc = self.text_splitter.split_text(doc_text)
         non_c_chunks = self.non_contextual_chunks(chunks_doc, doc_text)
         self.save_chunks(non_c_chunks, doc_id)
         return "Chunks guardados con éxito"
     
+    # Recuperar contexto de la base de datos
     def retrieve_context(self, query: str, k: int = 3) -> str:
         query_embedding = list(self.embedding_model.embed_documents([query]))[0]
         results = self.db.execute(
@@ -104,6 +110,7 @@ class Embedder:
         ).fetchall()
         return "\n-----\n".join([item[2] for item in results])
     
+    # Hacer una pregunta al modelo de lenguaje
     async def ask_question(self, query: str) -> str:
         messages = [
             {
@@ -124,6 +131,7 @@ class Embedder:
         """)
         return await self.call_model(prompt, messages), context
     
+    # Obtener consultas de viaje
     def get_travel_queries(self, pais: str):
         travel_queries = [
             "¿Existen áreas en {} que se deban evitar debido a conflictos o riesgos para la seguridad?",
@@ -138,6 +146,7 @@ class Embedder:
 
         return [{"id": i+1, "query": query.format(pais)} for i, query in enumerate(travel_queries)]
     
+    # Crear tablas temporales y hacer preguntas
     async def rag_pais(self, pais: str):
         # Para borrar las tablas y volver a crearlas a medida que se hacen pruebas
 
@@ -205,7 +214,7 @@ class Embedder:
 
         return self.responses
 
-#WebScrapper
+# Clase para extraer información de la web del Ministerio de Asuntos Exteriores
 class Scrapper:
 
     def __init__(self, pais: str):
@@ -215,6 +224,7 @@ class Scrapper:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
         })
 
+    # Buscar URLs de información de viaje para un país específico
     async def buscar_urls_pais(self):
         try:
             response = await self.client.get(self.base_url, timeout=10.0)
@@ -251,6 +261,7 @@ class Scrapper:
         except aiohttp.ClientError as e:
             return f'Error al realizar la solicitud HTTP: {e}'
 
+    # Extraer contenido de un PDF
     async def extraer_contenido_pdf_informacion(self, url: str):#Lo saca separando por contenido
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
@@ -270,6 +281,7 @@ class Scrapper:
         except aiohttp.ClientError as e:
             return f'Error al realizar la solicitud HTTP: {e}'
 
+    # Extraer contenido de una recomendación de viaje
     async def extraer_contenido_recomendacion_viaje(self, url: str):
         try:
             response = await self.client.get(url)
@@ -285,18 +297,3 @@ class Scrapper:
             return secciones
         except aiohttp.ClientError as e:
             return f'Error al realizar la solicitud HTTP: {e}'
-        
-# async def funcion():
-#     parser = argparse.ArgumentParser(description="RAG")
-#     parser.add_argument("pais", type=str, help="País")
-#     args = parser.parse_args()
-
-#     # query_rag = QueryRAG()
-#     embedder = Embedder("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")
-
-#     respuestas = await embedder.rag_pais(args.pais)
-#     for res in respuestas:
-#       print(res)
-
-# if __name__ == "__main__":
-#     funcion()

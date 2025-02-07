@@ -17,6 +17,8 @@ class GraphState(BaseModel):
     number_interactions: int = 0
     verbose: bool = True
 
+# Agente final que se encarga de hacer un resumen general de la información proporcionada por los agentes especializados en vuelos, 
+# hoteles y lugares de interés
 class GeneralAgent:
     def __init__(self, input_data):
         self.hotel_agent = HotelAgent(input_data)
@@ -62,14 +64,3 @@ class GeneralAgent:
 
         resp = self.agent.invoke({"messages": messages, "verbose": False})
         return resp['messages'].content
-        
-    
-# if __name__ == "__main__":
-#     input_data = {
-#         'origin': 'Barcelona',
-#         'destination': 'Madrid',
-#         'departureDate': '2025-03-01',
-#         'returnDate': '2025-04-10'
-#     }
-#     agent = GeneralAgent(input_data)
-#     print(agent.run())
