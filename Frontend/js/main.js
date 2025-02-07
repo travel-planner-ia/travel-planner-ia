@@ -28,63 +28,82 @@ function fillCountries(listOfCountries, defaultCountry){
     });
 }
 
-// Método para enviar la información del formulario al backend.
-async function submitForm() {
-    const form = document.getElementById('travelForm');
-    const formData = new FormData(form);
-    const URL = 'http://localhost:8000/servidor';
-    const data = {
-      origin: formData.get('origin'),
-      country: formData.get('country'),
-      destination: formData.get('destination'),
-      adults: formData.get('adults'),
-      children: formData.get('children'),
-      departureDate: formData.get('departureDate'),
-      returnDate: formData.get('returnDate'),
-      budget: formData.get('budget'),
-      medicalCondition: formData.get('medicalCondition'),
-      additionalInfo: formData.get('additionalInfo'),
-      tags: formData.getAll('tags')
-    };
-  
-    if (!validateDates(data.departureDate, data.returnDate)) {
-      alert('Fechas inválidas. Por favor, indique unas fechas correctas.');
-    } else {
-      try {
-        const response = await fetch(URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
-        if (response.ok) {
-
-          //Añadir respuesta al front
-          const ANSWER = await response.json();
-          console.log(ANSWER)
-        const UL = document.getElementById("screen_text");
-        
-        let tiempo = 0;
-        ANSWER.datos.forEach(linea =>{
-            setTimeout(()=>{
-                let li = document.createElement("li");
-                li.appendChild(document.createTextNode(linea));
-                UL.appendChild(li)
-                UL.lastElementChild.scrollIntoView({ behavior: 'smooth' });
-            }, tiempo)
-            tiempo+=300
-        })
-        
-        } else {
-          alert('Error al enviar los datos');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('No se pudo conectar con el servidor');
-      }
-    }
+// Función para mostrar el spinner
+function showSpinner() {
+  const screen = document.getElementById("screen");
+  const spinner = document.createElement("div");
+  spinner.classList.add("spinner");
+  screen.appendChild(spinner);
 }
+
+// Función para ocultar el spinner
+function hideSpinner() {
+  const spinner = document.querySelector(".spinner");
+  if (spinner) {
+    spinner.remove();
+  }
+}
+
+// Modifica la función submitForm para mostrar el spinner antes de enviar la petición
+async function submitForm() {
+  showSpinner(); // Mostrar el spinner
+  const form = document.getElementById('travelForm');
+  const formData = new FormData(form);
+  const URL = 'http://localhost:8000/servidor';';'
+  const data = {
+    origin: formData.get('origin'),
+    country: formData.get('country'),
+    destination: formData.get('destination'),
+    adults: formData.get('adults'),
+    children: formData.get('children'),
+    departureDate: formData.get('departureDate'),
+    returnDate: formData.get('returnDate'),
+    budget: formData.get('budget'),
+    medicalCondition: formData.get('medicalCondition'),
+    additionalInfo: formData.get('additionalInfo'),
+    tags: formData.getAll('tags')
+  };
+
+  if (!validateDates(data.departureDate, data.returnDate)) {
+    alert('Fechas inválidas. Por favor, indique unas fechas correctas.');
+    hideSpinner(); // Ocultar el spinner
+  } else {
+    try {
+      const response = await fetch(URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      if (response.ok) {
+        const ANSWER = await response.json();
+        console.log(ANSWER);
+        const UL = document.getElementById("screen_text");
+
+        let tiempo = 0;
+        ANSWER.datos.forEach(linea => {
+          setTimeout(() => {
+            let li = document.createElement("li");
+            li.appendChild(document.createTextNode(formateoTexto(linea)));
+            UL.appendChild(li);
+            UL.lastElementChild.scrollIntoView({ behavior: 'smooth' });
+          }, tiempo);
+          tiempo += 300;
+        });
+        hideSpinner(); // Ocultar el spinner
+      } else {
+        alert('Error al enviar los datos');
+        hideSpinner(); // Ocultar el spinner
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('No se pudo conectar con el servidor');
+      hideSpinner(); // Ocultar el spinner
+    }
+  }
+}
+
 
 // Método para validar las fechas de salida y regreso.
 function validateDates(departureDate, returnDate) {
