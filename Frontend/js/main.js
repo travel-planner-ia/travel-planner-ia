@@ -26,8 +26,27 @@ function fillCountries(listOfCountries, defaultCountry){
     });
 }
 
-//Envio al back
-async function submitForm() {
+// Función para mostrar el spinner
+function showSpinner() {
+    const spinnerContainer = document.createElement("div");
+    spinnerContainer.classList.add("spinner-container");
+    const spinner = document.createElement("div");
+    spinner.classList.add("spinner");
+    spinnerContainer.appendChild(spinner);
+    document.body.appendChild(spinnerContainer);
+  }
+  
+  // Función para ocultar el spinner
+  function hideSpinner() {
+    const spinnerContainer = document.querySelector(".spinner-container");
+    if (spinnerContainer) {
+      spinnerContainer.remove();
+    }
+  }
+  
+  // Modifica la función submitForm para mostrar el spinner antes de enviar la petición
+  async function submitForm() {
+    showSpinner(); // Mostrar el spinner
     const form = document.getElementById('travelForm');
     const formData = new FormData(form);
     const URL = 'http://localhost:8000/servidor';
@@ -47,6 +66,7 @@ async function submitForm() {
   
     if (!validateDates(data.departureDate, data.returnDate)) {
       alert('Fechas inválidas. Por favor, indique unas fechas correctas.');
+      hideSpinner(); // Ocultar el spinner
     } else {
       try {
         const response = await fetch(URL, {
@@ -57,31 +77,37 @@ async function submitForm() {
           body: JSON.stringify(data)
         });
         if (response.ok) {
-
-          //Añadir respuesta al front
           const ANSWER = await response.json();
-          console.log(ANSWER)
-        const UL = document.getElementById("screen_text");
-        
-        let tiempo = 0;
-        ANSWER.datos.forEach(linea =>{
-            setTimeout(()=>{
-                let li = document.createElement("li");
-                li.appendChild(document.createTextNode(linea));
-                UL.appendChild(li)
-                UL.lastElementChild.scrollIntoView({ behavior: 'smooth' });
-            }, tiempo)
-            tiempo+=300
-        })
-        
+          console.log(ANSWER);
+          const UL = document.getElementById("screen_text");
+  
+          let tiempo = 0;
+          ANSWER.datos.forEach(linea => {
+            setTimeout(() => {
+              let li = document.createElement("li");
+              li.appendChild(document.createTextNode(formateoTexto(linea)));
+              UL.appendChild(li);
+              UL.lastElementChild.scrollIntoView({ behavior: 'smooth' });
+            }, tiempo);
+            tiempo += 300;
+          });
+          hideSpinner(); // Ocultar el spinner
         } else {
           alert('Error al enviar los datos');
+          hideSpinner(); // Ocultar el spinner
         }
       } catch (error) {
         console.error('Error:', error);
         alert('No se pudo conectar con el servidor');
+        hideSpinner(); // Ocultar el spinner
       }
     }
+  }
+  
+
+function formateoTexto(linea){
+    let textoFormateado = linea.replace(/\*\*(\w+)\*\*/g, (match, grupo) => `<b>${grupo.toUpperCase()}</b><br>`);
+    console.log(textoFormateado)
 }
 
 //Validar fechas
@@ -122,3 +148,20 @@ const date = new Date(year, month - 1, day);
 return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
   
+
+function showSpinner() {
+    const spinnerContainer = document.createElement("div");
+    spinnerContainer.classList.add("spinner-container");
+    const spinner = document.createElement("div");
+    spinner.classList.add("spinner");
+    spinnerContainer.appendChild(spinner);
+    document.body.appendChild(spinnerContainer);
+  }
+  
+  // Función para ocultar el spinner
+  function hideSpinner() {
+    const spinnerContainer = document.querySelector(".spinner-container");
+    if (spinnerContainer) {
+      spinnerContainer.remove();
+    }
+  }
