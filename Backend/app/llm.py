@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-#Embbeder y RAG
+#Clase que se encarga de recopilar la información de RAG y Amadeus para luego enviarla a LLM y obtener una respuesta final.
 class LLM:
 
     def __init__(self, api_key: str):
@@ -13,7 +13,8 @@ class LLM:
             self.model = "llama-3.3-70b-versatile"
             self.temperature = 0
             self.respuesta = ''
-    
+
+    # Construye el prompt para LLM a partir de las respuestas de RAG y Amadeus.
     def _prompting(self, rag_response:str, amadeus_response:str, formulario:str):
           
           # Convertir rag_response en un string legible
@@ -43,6 +44,7 @@ class LLM:
           
           return prompt
     
+    # Función que se encarga de llamar a LLM con el prompt y obtener la respuesta final.
     def _llamada_llm(self,query_final, messages=[]):
         messages.append(
             {

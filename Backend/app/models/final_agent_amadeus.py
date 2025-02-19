@@ -17,6 +17,8 @@ class GraphState(BaseModel):
     number_interactions: int = 0
     verbose: bool = True
 
+# Agente final que se encarga de hacer un resumen general de la información proporcionada por los agentes especializados en vuelos, 
+# hoteles y lugares de interés
 class GeneralAgent:
     def __init__(self, input_data):
         self.hotel_agent = HotelAgent(input_data)
@@ -37,30 +39,28 @@ class GeneralAgent:
         return state
     
     def run(self):
-        hotel_response = self.hotel_agent.run()
-        # print(f'HOTEL : {hotel_response}')
-        flight_response = self.flight_agent.run()
-        # print(f'FLIGHTS : {flight_response}')
-        places_response = self.places_agent.run()
-        # print(f'PLACES : {places_response}')
+        try:
+            hotel_response = self.hotel_agent.run()
+        except Exception as e:
+            hotel_response = "No has podido encontrar hoteles disponibles en la ubicación especificada."
+        try:
+            flight_response = self.flight_agent.run()
+        except Exception as e:
+            flight_response = "No has podido encontrar vuelos disponibles en la ubicación especificada."
+        try:
+            places_response = self.places_agent.run()
+        except Exception as e:  
+            places_response = "No has podido encontrar lugares de interés en la ubicación especificada."
+        
         
         messages = [
             SystemMessage(content=f"""Eres un asistente de viajes especializado en familias. Analiza la siguiente información sobre vuelos, hoteles y lugares de interés
                           . Cada uno de los asistentes especializados en vuelos, hoteles y lugares de interés te ha proporcionado información específica sobre 
                           cada uno de los temas. \n **Vuelos** {flight_response} \n **Hoteles** {hotel_response} \n **Lugares de interés** {places_response} \n 
                           Por favor, proporciona un resumen general de las mejores opciones para un viaje en familia, considerando la información proporcionada por los asistentes.
-                          Cuando hagas referencia a vuelos, hoteles o lugares asegurate de especificar el nombre de los mismos, sin usar números. \n""")
+                          Cuando hagas referencia a vuelos, hoteles o lugares asegurate de especificar el nombre de los mismos, sin usar números. Si no hay información en las secciones
+                          Hoteles, Vuelos o Lugares de Interés, simplemente responde que no tienes información, es decir, usa solo la información que se te da.\n""")
         ]
 
         resp = self.agent.invoke({"messages": messages, "verbose": False})
         return resp['messages'].content
-    
-if __name__ == "__main__":
-    input_data = {
-        'origin': 'Barcelona',
-        'destination': 'Madrid',
-        'departureDate': '2025-03-01',
-        'returnDate': '2025-04-10'
-    }
-    agent = GeneralAgent(input_data)
-    print(agent.run())

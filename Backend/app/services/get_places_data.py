@@ -4,6 +4,7 @@ import asyncio
 
 load_dotenv()
 
+# Método para obtener las actividades disponibles por ciudad.
 def get_places_data(city_name:str, radius: int = 1) -> str:
     """
     Get activities based on latitude and longitude provided by user.
@@ -34,7 +35,7 @@ def get_places_data(city_name:str, radius: int = 1) -> str:
         else:
             for idx, activity in enumerate(activity_list, 1):
                 name = activity.get("name", "Nombre no disponible")
-                description = activity.get("description", "Descripción no disponible")[:500]  # Limitar a 500 caracteres
+                description = activity.get("description", "Descripción no disponible")[:100]  # Limitar a 500 caracteres
                 prompt += f"Actividad #{idx}: {name}\nDescripción: {description}\n---\n"
         
         return prompt

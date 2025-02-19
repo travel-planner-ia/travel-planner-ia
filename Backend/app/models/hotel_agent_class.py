@@ -16,6 +16,7 @@ class GraphState(BaseModel):
     number_interactions: int = 0
     verbose: bool = True
 
+# Clase que representa al agente de hoteles encargado de recomendar hoteles en base a la información proporcionada.
 class HotelAgent():
     def __init__(self, input_data):
         self.model = ChatGroq(temperature=0, model_name=MODEL, api_key=groq_api_key)
