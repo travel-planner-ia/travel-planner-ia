@@ -45,7 +45,7 @@ joblib==1.4.2
 jsonpatch==1.33
 jsonpointer==3.0.0
 kombu==5.4.2
-langchain==0.3.17
+langchain
 langchain-community==0.3.16
 langchain-core==0.3.33
 langchain-groq==0.2.4
@@ -64,7 +64,7 @@ multidict==6.1.0
 mypy-extensions==1.0.0
 networkx==3.4.2
 nltk==3.9.1
-numpy==2.2.2
+numpy
 orjson==3.10.15
 packaging==24.2
 pdfminer.six==20231228
