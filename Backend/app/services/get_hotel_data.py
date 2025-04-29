@@ -6,9 +6,9 @@ import asyncio
 
 load_dotenv()
 
-# Método para obtener los hoteles disponibles por ciudad, fecha de entrada y fecha de salida.
+
 def get_hotel_data(check_in: str, check_out: str, city_name: str, 
-                   radius: int = 5, amenities: List[str] = None, 
+                   radius: int = 1, amenities: List[str] = None, 
                    ratings: List[str] = None) -> Dict[str, Any]:
     """Get hotel data using Amadeus API"""
 
@@ -63,3 +63,13 @@ def get_hotel_data(check_in: str, check_out: str, city_name: str,
         prompt += f"Aquí están los hoteles disponibles:\n\n{formatted_info}"
 
         return prompt
+
+# if __name__ == "__main__":
+#     check_in = "2025-03-01"
+#     check_out = "2025-03-10"
+#     city_name = "Madrid"
+#     radius = 5
+#     amenities = ["RESTAURANT", "BAR"]
+#     ratings = ["3", "4"]
+    
+#     print(get_hotel_data(check_in, check_out, city_name, radius, amenities, ratings))

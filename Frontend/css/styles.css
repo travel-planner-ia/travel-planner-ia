@@ -64,7 +64,6 @@ body {
     max-height: 863px;
     scrollbar-color: #00649d white;
     scrollbar-width: thin;
-    position: relative;
   }
 
   .screen__text{
@@ -82,34 +81,6 @@ body {
     margin-top: 10px;
   }
 
-
-  
-  .spinner-container {
-    position: absolute;
-    top: 50%;
-    left: 71%;
-    transform: translate(-50%, -50%);
-    z-index: 1000;
-    padding: 20px; /* Agrega esto para dar un poco de espacio alrededor del spinner */
-  }
-  
-  .spinner {
-    width: 60px;
-    height: 40px;
-    border: 4px solid #00649d;
-    border-top: 4px solid transparent;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-  
-  @keyframes spin {
-    0% {
-      transform: translate(-50%, -50%) rotate(0deg);
-    }
-    100% {
-      transform: translate(-50%, -50%) rotate(360deg);
-    }
-  }
 
   @media (max-width: 768px) {
     .panel {

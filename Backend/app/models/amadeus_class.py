@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Clase para interactuar con la API de Amadeus
 class AmadeusAPI:
     def __init__(self):
         self.base_url_v1 = "https://test.api.amadeus.com/v1"  
@@ -31,7 +30,8 @@ class AmadeusAPI:
             raise Exception(f"Failed to get access token: {response.text}")
 
 
-    # Método para buscar aeropuertos por nombre de ciudad
+    ## FlighAgent methods
+
     def search_airport(self, city_name: str) -> List[Dict[str, Any]]:
         """Search for airports by city name"""
         if not self.token:
@@ -59,7 +59,6 @@ class AmadeusAPI:
             print(f"Error response: {response.text}")
             raise Exception(f"Airport search failed: {response.text}")
 
-    # Método para buscar vuelos por origen, destino y fecha.
     def search_flights(self, origin: str, destination: str, date: str) -> Dict[str, Any]:
         """Search for flights using Amadeus API"""
         if not self.token:
@@ -92,7 +91,6 @@ class AmadeusAPI:
                 raise Exception("Error: Asegúrate de que tu cuenta de Amadeus tiene acceso a Flight Offers Search API")
             raise Exception(f"Flight search failed: {response.text}")
     
-    # Método para obtener el código IATA de un aeropuerto a partir del nombre de la ciudad.
     def get_iata_code(self, city_name: str) -> str:
         """Get IATA code for a city's main airport"""
         airports = self.search_airport(city_name)
@@ -115,7 +113,8 @@ class AmadeusAPI:
         return airports[0]["iataCode"]
     
 
-    # Método para obtener las actividades en una ciudad.
+    # PlacesAgent methods
+
     def get_activities(self, latitude: float, longitude: float, radius: int = 1) -> Dict[str, Any]:
         """Get activities around a given location"""
         if not self.token:
@@ -129,12 +128,13 @@ class AmadeusAPI:
             activities = response.json()
             # Limitar a las 30 primeras actividades
             if 'data' in activities:
-                activities['data'] = activities['data'][:15]
+                activities['data'] = activities['data'][:30]
             return activities
         else:
             raise Exception(f"Failed to get activities: {response.text}")
     
-    # Método para buscar el código de una ciudad.
+    # HotelAgent methods
+
     def search_city(self, city_name: str) -> List[Dict[str, Any]]:
         """Search for city codes"""
         if not self.token:
@@ -163,7 +163,6 @@ class AmadeusAPI:
             print(f"Error response: {response.text}")
             raise Exception(f"City search failed: {response.text}")
 
-    # Método para buscar hoteles en una ciudad.
     def search_hotels_by_city(self, city_code: str, radius: int = 5, amenities: List[str] = None, ratings: List[str] = None) -> Dict[str, Any]:
         """Search for hotels in a city"""
         if not self.token:
@@ -212,7 +211,7 @@ class AmadeusAPI:
         # Como último recurso, usar el primer código disponible
         return cities[0]["iataCode"]
     
-    # Método para obtener la latitud y longitud de una ciudad a partir de su nombre.
+
     def get_lat_lon(self, city_name: str) -> Dict[str, float]:
         """Get latitude and longitude of a city"""
         if not self.token:
@@ -225,7 +224,7 @@ class AmadeusAPI:
 
         params = {
             "keyword": city_name,
-            "max": 5,  # Solo devolver el primer resultado
+            "max": 1,  # Solo devolver el primer resultado
             "include": "AIRPORTS"  # Incluir aeropuertos si es necesario
         }
 

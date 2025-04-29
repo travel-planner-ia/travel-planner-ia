@@ -3,22 +3,22 @@ from pydantic import BaseModel
 from typing import List
 from models.user_request import Datos
 from fastapi.middleware.cors import CORSMiddleware
-from database.list_of_countries import list_of_countries
+from services.list_of_countries import list_of_countries
 from services.stream_answer import stream_answer, procesar_respuesta;
 from services.travel_rag import Embedder, Scrapper
 from models.final_agent_amadeus import GeneralAgent
 from llm import LLM
 import asyncio
-import os
-from dotenv import load_dotenv
-load_dotenv()
+# from services.get_countries import return_countries;
+# import bs4
+#print(bs4.__version__)
+from models.final_agent_amadeus import GeneralAgent
 
-# Script principal de la aplicación que carga el servidor de FastAPI.
 app = FastAPI()
 semaforo = asyncio.Semaphore(1)
 origins = [
-    "http://localhost:3000",  # Origen del frontend
-    "null"  # Origen del frontend cuando se ejecuta desde un archivo local
+    "http://localhost:3000",  # origen del frontend
+    "null"  # origen del frontend cuando se ejecuta desde un archivo local
 ]
 
 app.add_middleware(
@@ -35,22 +35,30 @@ async def get_home():
     countries = list_of_countries
     return {"mensaje": "Bienvenido a la aplicacion", "datos": countries}
 
-# Método encargado de procesar las respuestas de RAG y Amadeus de manera asíncrona.
+
 async def procesar_respuestas(front_request):
     # Llamadas a procesos pesados (RAG y Amadeus) en paralelo
     async def obtener_rag():
         try:
-            embedder = Embedder(os.getenv("RAG_API_KEY"))
-            return await embedder.rag_pais(front_request.country)
+            embedder = Embedder("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")
+            return await embedder.rag_pais(front_request.destination)
         except Exception as e:
             print("Error en la llamada a RAG:", e)
             return None
 
     async def obtener_amadeus():
         try:
-            print(front_request.dict())
-            amadeus = GeneralAgent(front_request.dict())
-            return await asyncio.to_thread(amadeus.run)
+            # Simulación de llamada sincrónica convertida en asíncrona
+            await asyncio.sleep(1)  # Simulación de retardo
+            return """
+                **Vuelos:**  
+                - Aerolínea: Air Family  
+                - Vuelo: AF1234  
+                - Precio: 250€  
+                
+                **Hoteles:**  
+                - Hotel Familiar París (150€/noche)  
+            """
         except Exception as e:
             print("Error en la llamada a Amadeus:", e)
             return None
@@ -62,35 +70,23 @@ async def procesar_respuestas(front_request):
 
     return respuestas_rag, respuestas_amadeus
 
-# Endpoint que recibe la información solicitada por el usuario y procesa las respuestas de RAG y Amadeus.
+
 @app.post("/servidor")
 async def post_to_servidor(frontRequest: Datos):
     print("frontRequest =", frontRequest)
 
-    # Procesa tareas concurrentemente con semáforo para la sección crítica.
+    # Procesa tareas concurrentemente con semáforo para la sección crítica
     async with semaforo:
         respuestas_rag, respuestas_amaedeus = await procesar_respuestas(frontRequest)
 
         try:
-            if respuestas_rag and not respuestas_amaedeus:
-                llm = LLM(os.getenv("RAG_API_KEY"))
-                prompt = llm._prompting(respuestas_rag, '', frontRequest)
-                respuesta_final = llm._llamada_llm(prompt)
-                return {"mensaje": "Respuesta procesada", "datos": procesar_respuesta(respuesta_final)}
-            
-            elif not respuestas_rag and respuestas_amaedeus:
-                llm = LLM(os.getenv("RAG_API_KEY"))
-                prompt = llm._prompting([''], respuestas_amaedeus, frontRequest)
-                respuesta_final = llm._llamada_llm(prompt)
-                return {"mensaje": "Respuesta procesada", "datos": procesar_respuesta(respuesta_final)}
-            
-            elif respuestas_rag and respuestas_amaedeus:
-                llm = LLM(os.getenv("RAG_API_KEY"))
+            if respuestas_rag and respuestas_amaedeus:
+                llm = LLM('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')
                 prompt = llm._prompting(respuestas_rag, respuestas_amaedeus, frontRequest)
                 respuesta_final = llm._llamada_llm(prompt)
                 return {"mensaje": "Respuesta procesada", "datos": procesar_respuesta(respuesta_final)}
             else:
-                return {"error": "Fallo en la obtención de respuestas RAG y Amadeus"}
+                return {"error": "Fallo en la obtención de respuestas RAG o Amadeus"}
         except Exception as e:
             print("Error en la llamada final al LLM:", e)
             return {"error": "Error procesando la respuesta final"}

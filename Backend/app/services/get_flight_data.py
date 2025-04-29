@@ -4,7 +4,6 @@ import asyncio
 
 load_dotenv()
 
-# Método para obtener los vuelos disponibles por origen, destino, fecha de salida y fecha de regreso
 def get_flight_data(origin: str, destination: str, departure_date: str, return_date: str) -> str:
     """
     Get flight data based on origin, destination, departure_date and return_date provided by user.
@@ -68,3 +67,7 @@ def get_flight_data(origin: str, destination: str, departure_date: str, return_d
                 prompt += f"Precio: {price} {currency}\n\n"
     
     return prompt
+
+# if __name__=='__main__':
+#     prompt = get_flight_data('Barcelona', 'Madrid', '2025-03-01', '2025-04-10')
+#     print(prompt)
